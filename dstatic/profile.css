@@ -1,0 +1,162 @@
+
+.profile__section {
+    margin: 15px;
+}
+
+.profile {
+    display: flex;
+    padding: 20px;
+    background: #34393d;
+    border-radius: 12px;
+}
+
+.field__avatar {
+    height: 8vw;
+    width: 8vw;
+    background: palegoldenrod;
+}
+
+.avatar {
+
+}
+
+.field__description {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: flex-start;
+    padding: 15px 0 0 16px;
+}
+
+.username {
+
+}
+
+.description {
+    margin: 15px 0 0 15px;
+}
+
+.profile__bar {
+    margin-top: 15px;
+    display: flex;
+    padding: 6px;
+    background: #34393d;
+    border-radius: 12px;
+}
+
+.profile__item {
+    display: flex;
+    flex-grow: 1;
+    justify-content: space-around;
+    color: #54f8f6;
+}
+
+.current {
+    color: #14ff00;
+}
+
+.content__bar {
+    background: #34393d;
+    border-radius: 12px;
+    margin-top: 15px;
+    padding: 10px 15px 10px 15px;
+}
+
+.content__item {
+    margin-bottom: 10px;
+    padding-top: 5px;
+    position: relative;
+}
+.content__item::before {
+    content: "";
+    position: absolute;
+    width: 5.5px;
+    height: 5.5px;
+    top: 2px;
+    left: -5px;
+    border-top: 1.5px solid #f8ee54;
+    border-left: 1.5px solid #f8ee54;
+}
+.content__item::after {
+    content: "";
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    bottom: 0px;
+    right: -6px;
+    border-bottom: 1.5px solid #f8ee54;
+    border-right: 1.5px solid #f8ee54;
+}
+
+.user__test {
+
+}
+
+.item__preview {
+    margin-bottom: 6px;
+}
+
+.item__link {
+    color: #54f8f6;
+    padding: 0 10px 0 10px;
+}
+
+.item__grade {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+}
+
+.neutral {
+    color: #ffffff;
+}
+
+.positive {
+    color: #16f93f;
+}
+
+.negative {
+    color: #f91616;
+}
+
+
+.partition {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.partition__big {
+    height: 1px;
+    width: 90%;
+    background: #ececec;
+}
+
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 10px;
+}
+
+.pagination > a {
+    padding: 1px 8px 0 8px;
+    border: 1px solid #000;
+    border-radius: 10px;
+    margin: 0 4px 0 4px;
+    font-family: sans-serif;
+}
+
+.pagination__clickable {
+    color: #0074ff;
+}
+
+.pagination__unclickable {
+   color: #ff0047;
+}
+
+.pagination__current {
+    color: #14ff00;
+    border-color: #54f8f6;
+}
+
