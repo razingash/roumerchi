@@ -1,0 +1,73 @@
+
+.test__field {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    background: #34393d;
+    border-radius: 12px;
+}
+
+.test__preview {
+    display: flex;
+    justify-content: center;
+}
+
+.test__description {
+    margin: 0 0 15px 15px;
+}
+
+.test__button {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 30px;
+}
+
+.button__start {
+    padding: 3px 9px 3px 9px;
+    background: #1c1c1d;
+    border-radius: 7px;
+    color: #54f8f6;
+    border: 1px solid;
+}
+
+
+.test__question {
+    display: flex;
+    justify-content: center;
+}
+
+.quetion__field {
+
+}
+
+.quetions__list {
+
+}
+
+.quetion__item {
+    display: flex;
+    margin: 4px 0 4px 0;
+}
+
+.test__quetion__checkbox {
+
+}
+
+.quetion__answer {
+    margin-left: 10px;
+}
+
+.test__buttons {
+    display: flex;
+    margin: 5px 0 0 10px;
+}
+
+.previous_question_button {
+    padding: 2px 9px 4px 9px;
+    background: #1c1c1d;
+    border-radius: 7px;
+    color: #0074ff;
+    cursor: pointer;
+    user-select: none;
+    border: 1px solid;
+}

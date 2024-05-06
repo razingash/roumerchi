@@ -38,6 +38,7 @@ a {
     left: 0;
     border-top: 1px solid #000;
     border-left: 1px solid #000;
+    transition: 0.3s ease;
 }
 .header__item::after {
     visibility: hidden;
@@ -49,6 +50,7 @@ a {
     right: 0;
     border-bottom: 1px solid #000000;
     border-right: 1px solid #000;
+    transition: 0.3s ease;
 }
 
 .header__item:hover {
@@ -64,4 +66,7 @@ a {
     transition: 0.5s ease;
 }
 
-           
+
+.section {
+    margin: 15px;
+}
