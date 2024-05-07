@@ -1,8 +1,85 @@
 
 .section__tests {
     display: flex;
+    flex-direction: column;
     justify-content: center;
 }
+
+.filters__field {
+    display: flex;
+    justify-content: space-between;
+    margin: 20px 20px 0 20px;
+}
+
+.left_side {
+    display: flex;
+}
+
+.right_side {
+    display: flex;
+    justify-content: flex-end;
+    margin-right: 30px;
+}
+
+.category__cell, .criterion__cell, .sort__cell {
+    position: relative;
+    padding: 6px 8px 6px 10px;
+    background: linear-gradient(360deg, #7f7f7f, #969696);
+    border-bottom: 1px solid #00000000;
+}
+
+.criterion__cell {
+    margin-left: 27px;
+}
+
+.choose_param {
+    padding: 0 6px 0 6px;
+}
+
+.filter_by_category, .filter_by_criterion, .sort_by{
+    position: absolute;
+    left: 0;
+    display: none;
+    margin-top: 7px;
+    width: 8em;
+    padding-bottom: 6px;
+    background: linear-gradient(180deg, #949494, #5757ff);
+    border-radius: 0px 0px 10px 10px;
+    z-index: 2;
+}
+
+.category__item, .criterion__item, .sort__item{
+    margin: 3px 0 3px 0;
+    padding: 0 3px 0 3px;
+}
+.category__item:hover, .criterion__item:hover, .sort__item:hover {
+    border-top: 1px solid #000;
+    border-bottom: 1px solid #000;
+    transform: translateY(1px);
+    background: linear-gradient(0deg, #ffffff63, #ffffffb3);
+}
+
+.choose_param:hover {
+    border-bottom: 0 solid black;
+}
+
+.category__cell:hover, .criterion__cell:hover, .sort__cell:hover {
+    border-bottom: 1px solid #000000;
+}
+
+.category__cell:hover .filter_by_category {
+    display: block;
+}
+
+.criterion__cell:hover .filter_by_criterion {
+    display: block;
+}
+
+.sort__cell:hover .sort_by {
+    display: block;
+}
+
+
 
 .tests__field {
     width: 100%;
@@ -14,7 +91,7 @@
 .test__list {
     display: flex;
     flex-wrap: wrap;
-    margin: 20px;
+    margin: 15px 20px 20px 20px;
 }
 
 .test__cell {
