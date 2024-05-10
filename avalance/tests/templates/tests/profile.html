@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link type="text/css" rel="stylesheet" href="../../static/avalance/css/core.css">
-    <link type="text/css" rel="stylesheet" href="../../static/avalance/css/profile.css">
-    <title>Profile</title>
-</head>
-<body>
-    <div class="header__menu">
-        <a href="#" class="header__item">Profile</a>
-        <a href="#" class="header__item">Discussions</a>
-        <a href="#" class="header__item">Tests</a>
-        <a href="#" class="header__item">Similars</a>
-    </div>
+{% extends 'tests/base.html' %}
 
+{% load static %}
+
+{% block additional_css %}
+    <link type="text/css" rel="stylesheet" href="{% static 'tests/css/profile.css' %}">
+{% endblock %}
+
+{% block content %}
     <div class="section">
         <div class="profile">
             <div class="field__avatar">
@@ -68,5 +61,4 @@
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

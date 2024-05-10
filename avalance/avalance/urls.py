@@ -21,7 +21,7 @@ from avalance import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('sitename/', include('tests.urls'))
+    path('roumerchi/', include('tests.urls'))
 ]
 
 if settings.DEBUG:

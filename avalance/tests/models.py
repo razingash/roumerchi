@@ -1,11 +1,16 @@
 from PIL import Image
 from django.contrib.auth.models import AbstractUser
 from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator, MinLengthValidator, MinValueValidator
+from django.core.validators import FileExtensionValidator, MinLengthValidator, MinValueValidator, MaxValueValidator
 from django.db import models
 
 from uuid import uuid4
 import re
+
+from django.db.models import UniqueConstraint
+from django.urls import reverse
+from django.utils.text import slugify
+
 
 class TestComplaints(models.IntegerChoices):
     FIRST = 1, 'first'
@@ -20,6 +25,14 @@ class TestStatuses(models.IntegerChoices):
     CHECKING = 2, 'awaiting verification' # link aviable, test temporarily closed
     FREEZED = 3, 'freezed' # link aviable, test closed / author can set up this state
     BANNED = 4, 'banned' # link aviable, test closed
+
+class AnswerPoints(models.IntegerChoices):
+    FIRST = 1, 'first'
+    SECOND = 2, 'second'
+    THIRD = 3, 'third'
+    FOURTH = 4, 'fourth'
+    FIFTH = 5, 'fifth'
+    SIXTH = 6, 'sixth'
 
 class UserTrustFactors(models.IntegerChoices):
     FIRST = 0, 'first'
@@ -54,19 +67,52 @@ class CustomUser(AbstractUser):
     trust_factor = models.PositiveSmallIntegerField(choices=UserTrustFactors.choices, blank=False, null=False,
                                                     default=UserTrustFactors.FIRST)
 
+    def get_absolute_url(self):
+        return reverse('profile', kwargs={'profile_uuid': self.uuid})
+
+    def __str__(self):
+        return self.username
+
+    class Meta:
+        db_table = 'custom_user'
+        constraints = [
+            UniqueConstraint(fields=['username'], name='unique_customuser_username'),
+            UniqueConstraint(fields=['email'], name='unique_customuser_email')
+        ]
+
 
 class Test(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
-    category = models.PositiveSmallIntegerField(choices=TestCategories.choices, blank=False, null=False, max_length=2)
-    status = models.PositiveSmallIntegerField(choices=TestStatuses.choices, blank=False, null=False, max_length=1,
+    category = models.PositiveSmallIntegerField(choices=TestCategories.choices, blank=False, null=False)
+    status = models.PositiveSmallIntegerField(choices=TestStatuses.choices, blank=False, null=False,
                                               default=TestStatuses.CHECKING)
     preview = models.CharField(max_length=110, blank=False, null=False)
+    preview_slug = models.SlugField(blank=False, null=True, unique=True)
     description = models.TextField(max_length=5000, blank=False, null=False, validators=[MinLengthValidator(500)])
-    questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(15)]) # improve this
+    questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(15),
+                                                                                           MaxValueValidator(150)]) # improve this
     grade = models.SmallIntegerField(default=0, blank=False, null=False)
     reputation = models.SmallIntegerField(default=50, blank=False, null=False)
-    publication_date = models.DateTimeField(auto_created=True, blank=False, null=False)
+    publication_date = models.DateTimeField(auto_now=True, blank=False, null=False)
     change_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
+
+    def clean(self):
+        if self._state.adding:
+            self.preview_slug = slugify(self.preview)
+            super().clean()
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def get_absolute_url(self):
+        return reverse('test', kwargs={'test_preview': self.preview_slug})
+
+
+class TestResult(models.Model):
+    test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    criterion = models.PositiveSmallIntegerField(choices=AnswerPoints.choices, blank=False, null=False)
+    result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(100)])
 
 
 class Complaint(models.Model):
@@ -100,7 +146,7 @@ class TestQuestion(models.Model):
 
 
 class QuestionAnswerChoice(models.Model):
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
+    question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
     answer = models.CharField(max_length=110, blank=False, null=False)
     weight = models.PositiveSmallIntegerField(blank=False, null=False)
 

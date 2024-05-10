@@ -1,15 +1,19 @@
 
 .test__field {
+    position: relative;
     display: flex;
     flex-direction: column;
     padding: 20px;
-    background: #34393d;
     border-radius: 12px;
+    box-shadow: inset 0 0 10px rgb(0 0 0 / 50%);
+    background: linear-gradient(180deg, #bcbcbc, #b1adad);
 }
 
 .test__preview {
     display: flex;
     justify-content: center;
+    margin: 9px 0 9px 0;
+    overflow-wrap: anywhere;
 }
 
 .test__description {
@@ -28,6 +32,7 @@
     border-radius: 7px;
     color: #54f8f6;
     border: 1px solid;
+    cursor: pointer;
 }
 
 
@@ -49,8 +54,31 @@
     margin: 4px 0 4px 0;
 }
 
-.test__quetion__checkbox {
+.test__questions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    top: 0;
+    right: 0;
+    padding: 12px 24px 12px 24px;
+    border-radius: 0 10px 0 10px;
+    border-bottom: 1px solid #ececec;
+    border-left: 1px solid #ececec;
+    font-family: sans-serif;
+    font-weight: 900;
+    background: #ececec;
+}
 
+.test__questions__amount {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.questions__amount {
+    position: absolute;
 }
 
 .quetion__answer {
@@ -70,4 +98,8 @@
     cursor: pointer;
     user-select: none;
     border: 1px solid;
+}
+
+#test__walkthrough {
+    display: none;
 }

@@ -1,0 +1,25 @@
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-mode="ligth">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ title }}</title>
+    <link rel="icon" type="images/x-icon" href="{% static 'tests/favicon.ico' %}">
+    <link rel="stylesheet" type="text/css" href="{% static 'tests/css/core.css' %}">
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% block additional_css %} {% endblock additional_css %}
+    {% block additional_js %} {% endblock additional_js %}
+    <!--<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
+</head>
+<body>
+    <div class="header__menu">
+        <a href="#" class="header__sitename">Roumerchi</a>
+        <a href="#" class="header__item">Profile</a>
+        <a href="{% url 'search_test' %}" class="header__item">Tests</a>
+        <a href="#" class="header__item">Similars</a>
+    </div>
+    {% block content %}{% endblock content %}
+</body>
+</html>

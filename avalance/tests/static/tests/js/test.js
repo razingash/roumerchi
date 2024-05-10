@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function () {
-    const questions = [
+    /*const questions = [
         {
             text: 'как вы относитесь к государственному регулированию экономики?',
             answers: [
@@ -22,9 +22,20 @@ document.addEventListener('DOMContentLoaded', function () {
     let currentQuestionIndex = 0;
 
     const questionElement = document.querySelector('.test__question');
-    const questionListElement = document.getElementById('question_1');
+    const questionListElement = document.getElementById('question_1');*/
+
     const previousButton = document.querySelector('.previous_question_button');
     const selectedAnswers = [];
+
+    const buttonStart = document.querySelector('.button__start');
+    const testWalkthrough = document.getElementById('test__walkthrough');
+    const testDescription = document.getElementById('test__description');
+
+    buttonStart.addEventListener('click', function () {
+        testDescription.style.display = 'none';
+
+        testWalkthrough.style.display = 'block';
+    });
 
     function displayQuestion(index) {
         if (index < 0 || index >= questions.length) {

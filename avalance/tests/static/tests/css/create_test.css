@@ -1,0 +1,32 @@
+
+.test__section {
+    position: relative;
+    margin: 20px;
+}
+
+.test__field {
+    height: 100px;
+    background: darkturquoise;
+    border-radius: 4px;
+}
+
+
+@media (max-width: 768px) {
+    .test__section {
+        position: relative;
+        margin: 0;
+    }
+
+    .test__field {
+        height: auto;
+        border-radius: 0;
+        position: fixed;
+        top: 58px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #6971e5;
+        border-top: 5px solid #000;
+        z-index: -1;
+    }
+}

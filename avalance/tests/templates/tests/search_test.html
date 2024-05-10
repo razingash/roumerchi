@@ -1,19 +1,12 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <link type="text/css" rel="stylesheet" href="../../static/avalance/css/core.css">
-    <link type="text/css" rel="stylesheet" href="../../static/avalance/css/search_test.css">
-    <title>Title</title>
-</head>
-<body>
-    <div class="header__menu">
-        <a href="#" class="header__item">Profile</a>
-        <a href="#" class="header__item">Discussions</a>
-        <a href="#" class="header__item">Tests</a>
-        <a href="#" class="header__item">Similars</a>
-    </div>
+{% extends 'tests/base.html' %}
 
+{% load static %}
+
+{% block additional_css %}
+    <link type="text/css" rel="stylesheet" href="{% static 'tests/css/search_test.css' %}">
+{% endblock %}
+
+{% block content %}
     <div class="section__tests">
         <div class="tests__field">
             <div class="filters__field">
@@ -76,19 +69,25 @@
                         <div class="item__avatar"></div>
                         <div href="#" class="item__preview">Тщательный Психологический Тест для Определения Типа Личности и Стиля Жизни во время кризисов мирового уровня</div>
                         <div class="item__reputation">0</div>
-                        <div class="item__status">svg o</div>
+                        <div class="item__status">
+                            <svg width="20" height="20" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="10" cy="10" r="8" fill="#000" />
+                                <path d="M 10 10 L 10 2 A 8 8 0 0 1 15.656 4.344 Z" fill="orange" />
+                            </svg>
+                        </div>
                     </a>
                 </div>
+                {% for test in tests %}
                 <div class="test__cell">
-                    <a href="#" class="test__item">
+                    <a href="{{ test.get_absolute_url }}" id="{{ test.id }}" class="test__item">
                         <div class="item__avatar"></div>
-                        <div class="item__preview">first test</div>
-                        <div class="item__reputation">0</div>
+                        <div class="item__preview">{{ test.preview }}</div>
+                        <div class="item__reputation">{{ test.grade }}</div>
                         <div class="item__status">svg o</div>
                     </a>
                 </div>
+                {% endfor %}
             </div>
         </div>
     </div>
-</body>
-</html>
+{% endblock %}

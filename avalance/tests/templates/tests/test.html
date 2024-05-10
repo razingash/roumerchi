@@ -1,0 +1,56 @@
+{% extends 'tests/base.html' %}
+
+{% load static %}
+
+{% block additional_css %}
+    <link type="text/css" rel="stylesheet" href="{% static 'tests/css/test.css' %}">
+{% endblock %}
+{% block additional_js %}
+    <script src="{% static 'tests/js/test.js' %}"></script>
+{% endblock %}
+
+{% block content %}
+<div class="section">
+    <div class="test__field" id="test__description">
+        <div class="test__questions">
+            <div class="test__questions__amount">
+                <div class="questions__amount">151</div>
+            </div>
+        </div>
+        <div class="test__preview">first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1first test from user1</div>
+        <div class="test__description">{{ test.description }}</div>
+        <div class="test__button">
+            <div class="button__start">start</div>
+        </div>
+    </div>
+    <div class="test__field" id="test__walkthrough">
+        <div class="test__question"></div>
+        <div class="quetion__field">
+            <div class="quetions__list" id="question_1">
+                <label class="quetion__item" id="answer_1">
+                    <input type="checkbox" class="test__quetion__checkbox">
+                    <div class="quetion__answer">полное государственное вмешательство</div>
+                </label>
+                <label class="quetion__item" id="answer_2">
+                    <input type="checkbox" class="test__quetion__checkbox">
+                    <div class="quetion__answer">среднее государственное вмешательство</div>
+                </label>
+                <label class="quetion__item" id="answer_3">
+                    <input type="checkbox" class="test__quetion__checkbox">
+                    <div class="quetion__answer">не уверен</div>
+                </label>
+                <label class="quetion__item" id="answer_4">
+                    <input type="checkbox" class="test__quetion__checkbox">
+                    <div class="quetion__answer">минимальное государственное вмешательство</div>
+                </label><label class="quetion__item" id="answer_5">
+                <input type="checkbox" class="test__quetion__checkbox">
+                <div class="quetion__answer">абсолютное отсутствие государственного вмешательства</div>
+            </label>
+            </div>
+        </div>
+        <div class="test__buttons">
+            <div class="previous_question_button">previous</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

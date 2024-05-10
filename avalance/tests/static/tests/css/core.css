@@ -14,8 +14,23 @@ a {
 .header__menu{
     display: flex;
     justify-content: space-around;
+    align-items: center;
     background: #ececec;
     padding: 5px;
+    max-height: 59px;
+}
+
+.header__sitename {
+    display: flex;
+    justify-content: center;
+    flex-grow: 1;
+    padding: 7.5px;
+    color: #5757ff;
+    font-family: sans-serif;
+    font-size: 1.5em;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    position: relative;
 }
 
 .header__item {
@@ -28,7 +43,7 @@ a {
     position: relative;
 }
 
-.header__item::before {
+.header__item::before, .header__sitename:before {
     visibility: hidden;
     content: "";
     position: absolute;
@@ -40,7 +55,7 @@ a {
     border-left: 1px solid #000;
     transition: 0.3s ease;
 }
-.header__item::after {
+.header__item::after, .header__sitename:after {
     visibility: hidden;
     content: "";
     position: absolute;
@@ -53,13 +68,15 @@ a {
     transition: 0.3s ease;
 }
 
-.header__item:hover {
+.header__item:hover, .header__sitename:hover{
     background: linear-gradient(to top, #ececec, #c3c3c3);
     transition: 1s ease;
 }
 
 .header__item:hover::before,
-.header__item:hover::after {
+.header__item:hover::after,
+.header__sitename:hover::before,
+.header__sitename:hover::after {
     visibility: visible;
     width: 100%;
     height: 100%;
