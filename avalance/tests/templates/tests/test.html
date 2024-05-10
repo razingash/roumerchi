@@ -6,6 +6,8 @@
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/test.css' %}">
 {% endblock %}
 {% block additional_js %}
+    <meta name="test-id" content="{{ test.id }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'tests/js/test.js' %}"></script>
 {% endblock %}
 
@@ -24,32 +26,22 @@
         </div>
     </div>
     <div class="test__field" id="test__walkthrough">
-        <div class="test__question"></div>
         <div class="quetion__field">
-            <div class="quetions__list" id="question_1">
-                <label class="quetion__item" id="answer_1">
-                    <input type="checkbox" class="test__quetion__checkbox">
-                    <div class="quetion__answer">полное государственное вмешательство</div>
-                </label>
-                <label class="quetion__item" id="answer_2">
-                    <input type="checkbox" class="test__quetion__checkbox">
-                    <div class="quetion__answer">среднее государственное вмешательство</div>
-                </label>
-                <label class="quetion__item" id="answer_3">
-                    <input type="checkbox" class="test__quetion__checkbox">
-                    <div class="quetion__answer">не уверен</div>
-                </label>
-                <label class="quetion__item" id="answer_4">
-                    <input type="checkbox" class="test__quetion__checkbox">
-                    <div class="quetion__answer">минимальное государственное вмешательство</div>
-                </label><label class="quetion__item" id="answer_5">
-                <input type="checkbox" class="test__quetion__checkbox">
-                <div class="quetion__answer">абсолютное отсутствие государственного вмешательства</div>
-            </label>
-            </div>
+            {% for question in test.testquestion_set.all %}
+                <div class="test__question">{{ question.question.question }}</div>
+                <div class="quetions__list" id="question_{{ forloop.counter }}">
+                    {% for answer in question.questionanswerchoice_set.all %}
+                        <label class="quetion__item">
+                            <input type="radio" name="question_{{ question.id }}">
+                            <div class="quetion__answer">{{ answer.answer }}</div>
+                        </label>
+                    {% endfor %}
+                </div>
+            {% endfor %}
         </div>
         <div class="test__buttons">
-            <div class="previous_question_button">previous</div>
+            <div class="back_to_description">back</div>
+            <div class="submit">submit</div>
         </div>
     </div>
 </div>

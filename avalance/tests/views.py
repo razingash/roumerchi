@@ -69,3 +69,10 @@ class TestView(DetailView, DataMixin):
         queryset = get_test_info_by_slug(test_slug=test_slug)
         return get_object_or_404(queryset)
 
+    def post(self, request, *args, **kwargs):
+        print(request.POST)
+        request_type = request.POST.get('request_type')
+        sender_id = request.POST.get('sender_id')
+        if request_type == 'new_walkthrough':
+            if sender_id is not None:
+                pass

@@ -87,10 +87,11 @@
 
 .test__buttons {
     display: flex;
+    justify-content: space-around;
     margin: 5px 0 0 10px;
 }
 
-.previous_question_button {
+.back_to_description, .submit {
     padding: 2px 9px 4px 9px;
     background: #1c1c1d;
     border-radius: 7px;
