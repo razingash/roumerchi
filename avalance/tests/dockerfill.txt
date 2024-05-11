@@ -16,6 +16,15 @@ test_description="Lorem ipsum dolor sit amet, consectetuer adipiscing elit.\n Ae
 test1 = Test.objects.create(author=user1, category=TestCategories.FIRST, status=TestStatuses.CHECKING, preview="first test from user1",
                             description=test_description, questions_amount=15)
 
+TestResult.objects.create(test=test1, criterion='rationality', result='the more rational points you have, the more rational you are.')
+TestResult.objects.create(test=test1, criterion='impulsiveness', result='the more impulsiveness points you have, the more impulsiveness you are.')
+
+TestUniqueResult.objects.create(test=test1, points_min=0, points_max=10, result='result for the case from 0 to 10')
+TestUniqueResult.objects.create(test=test1, points_min=11, points_max=22, result='result for the case from 11 to 22')
+TestUniqueResult.objects.create(test=test1, points_min=23, points_max=32, result='result for the case from 23 to 32')
+TestUniqueResult.objects.create(test=test1, points_min=32, points_max=40, result='result for the case from 32 to 40')
+
+
 for i in range(15):
     q = Question.objects.create(question=f"Question number {i+1}")
     TestQuestion.objects.create(test=test1, question=q)
@@ -29,4 +38,7 @@ for user in users:
     for i in range(15):
         Response.objects.create(answer_id=((i+1)*2), respondent=respondent)
 
-
+RespondentResult.objects.create(respondent=Respondent.objects.get(id=1), result=TestUniqueResult.objects.get(id=1))
+RespondentResult.objects.create(respondent=Respondent.objects.get(id=2), result=TestUniqueResult.objects.get(id=2))
+RespondentResult.objects.create(respondent=Respondent.objects.get(id=3), result=TestUniqueResult.objects.get(id=3))
+RespondentResult.objects.create(respondent=Respondent.objects.get(id=4), result=TestUniqueResult.objects.get(id=4))

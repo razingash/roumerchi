@@ -14,11 +14,39 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
+<svg class="svg__list" xmlns="http://www.w3.org/2000/svg">
+    <symbol id="icon_test_in_progress" viewBox="0 0 20 20">
+        <circle cx="10" cy="10" r="8" fill="#000"></circle>
+        <path d="M 10 10 L 10 2 A 8 8 0 0 1 15.656 4.344 Z" fill="orange"></path>
+    </symbol>
+    <symbol id="icon_user" viewBox="0 0 200 200" >
+        <g transform="matrix(1.0078 0 0 1.0078 -67.214 19.407)">
+            <g transform="rotate(-44.747 67.792 141.16)">
+                <rect transform="rotate(44.747)" x="146.42" y="-107.89" width="200" height="200" fill="#211e1e"/><circle transform="rotate(44.747)" cx="245.65" cy="-47.739" r="29.979" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/><g transform="matrix(.74724 1.0974e-8 -1.0974e-8 .74724 -145.82 -59.571)"/><path d="m40.681 167.84c37.868-30.716 95.332-29.301 131.84 7.0474 35.809 36.06 39.371 92.629 8.0728 131.64z" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/>
+            </g>
+        </g>
+    </symbol>
+</svg>
     <div class="header__menu">
-        <a href="#" class="header__sitename">Roumerchi</a>
-        <a href="#" class="header__item">Profile</a>
+        {% if request.user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="header__sitename">Roumerchi</a>
+        <a href="#" class="header__item">Upcoming</a>
         <a href="{% url 'search_test' %}" class="header__item">Tests</a>
-        <a href="#" class="header__item">Similars</a>
+        <a href="{% url 'profile' user_id %}" class="header__user_cover">
+            <svg class="svg__user">
+                <use xlink:href="#icon_user"></use>
+            </svg>
+        </a>
+        {% else %}
+        <a href="{% url 'registration' %}" class="header__sitename">Roumerchi</a>
+        <a href="#" class="header__item">Upcoming</a>
+        <a href="{% url 'search_test' %}" class="header__item">Tests</a>
+        <a href="{% url 'login' %}" class="header__user_cover">
+            <svg class="svg__user">
+                <use xlink:href="#icon_user"></use>
+            </svg>
+        </a>
+        {% endif %}
     </div>
     {% block content %}{% endblock content %}
 </body>

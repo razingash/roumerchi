@@ -26,14 +26,6 @@ class TestStatuses(models.IntegerChoices):
     FREEZED = 3, 'freezed' # link aviable, test closed / author can set up this state
     BANNED = 4, 'banned' # link aviable, test closed
 
-class AnswerPoints(models.IntegerChoices):
-    FIRST = 1, 'first'
-    SECOND = 2, 'second'
-    THIRD = 3, 'third'
-    FOURTH = 4, 'fourth'
-    FIFTH = 5, 'fifth'
-    SIXTH = 6, 'sixth'
-
 class UserTrustFactors(models.IntegerChoices):
     FIRST = 0, 'first'
     SECOND = 2, 'second'
@@ -111,7 +103,14 @@ class Test(models.Model):
 
 class TestResult(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
-    criterion = models.PositiveSmallIntegerField(choices=AnswerPoints.choices, blank=False, null=False)
+    criterion = models.CharField(max_length=25, blank=False, null=False)
+    result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(100)])
+
+
+class TestUniqueResult(models.Model): # сделать проверку для того чтобы не было несостыковок
+    test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    points_min = models.PositiveSmallIntegerField(blank=False, null=False)
+    points_max = models.PositiveSmallIntegerField(blank=False, null=False)
     result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(100)])
 
 
@@ -161,5 +160,6 @@ class Response(models.Model):
     answer = models.ForeignKey(QuestionAnswerChoice, on_delete=models.DO_NOTHING)
 
 
-
-
+class RespondentResult(models.Model):
+    respondent = models.OneToOneField(Respondent, on_delete=models.CASCADE)
+    result = models.OneToOneField(TestUniqueResult, on_delete=models.CASCADE)

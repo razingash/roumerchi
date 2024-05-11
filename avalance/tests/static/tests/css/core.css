@@ -87,3 +87,25 @@ a {
 .section {
     margin: 15px;
 }
+
+.svg__list {
+    position: absolute;
+    visibility: hidden;
+    overflow: hidden;
+    top: 0;
+    left: 0;
+    width: 0;
+    height: 0;
+}
+
+.header__user_cover {
+    display: flex;
+    margin-right: 20px;
+    padding: 0 10px 0 10px;
+}
+
+.svg__user {
+    height: 50px;
+    width: 50px;
+    border-radius: 100%;
+}
