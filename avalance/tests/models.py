@@ -101,7 +101,7 @@ class Test(models.Model):
         return reverse('test', kwargs={'test_preview': self.preview_slug})
 
 
-class TestResult(models.Model):
+class TestCriterion(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     criterion = models.CharField(max_length=25, blank=False, null=False)
     result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(100)])
@@ -146,6 +146,7 @@ class TestQuestion(models.Model):
 
 class QuestionAnswerChoice(models.Model):
     question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
+    criterion = models.ForeignKey(TestCriterion, on_delete=models.CASCADE)
     answer = models.CharField(max_length=110, blank=False, null=False)
     weight = models.PositiveSmallIntegerField(blank=False, null=False)
 
@@ -161,5 +162,5 @@ class Response(models.Model):
 
 
 class RespondentResult(models.Model):
-    respondent = models.OneToOneField(Respondent, on_delete=models.CASCADE)
-    result = models.OneToOneField(TestUniqueResult, on_delete=models.CASCADE)
+    respondent = models.ForeignKey(Respondent, on_delete=models.CASCADE)
+    result = models.ForeignKey(TestUniqueResult, on_delete=models.CASCADE)

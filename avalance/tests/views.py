@@ -9,7 +9,7 @@ from django.views.generic import DetailView, ListView, CreateView
 
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm
 from tests.models import CustomUser, Test
-from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent
+from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception
 from tests.utils import DataMixin
 
 
@@ -102,6 +102,7 @@ class TestView(DetailView, DataMixin):
         queryset = get_test_info_by_slug(test_slug=test_slug)
         return get_object_or_404(queryset)
 
+    @custom_exception
     def post(self, request, *args, **kwargs):
         print(request.POST)
         request_type = request.POST.get('request_type')
@@ -110,8 +111,8 @@ class TestView(DetailView, DataMixin):
         selected_answers = request.POST.getlist('selected_answers[]')
         if request_type == 'new_walkthrough':
             if sender_id is not None:
-                result = create_new_test_respondent(sender_id=sender_id, test_id=test_id, answers=selected_answers)
-                return JsonResponse({'message': result})
+                result, criterions = create_new_test_respondent(sender_id=sender_id, test_id=test_id, answers=selected_answers)
+                return JsonResponse({'status': 200, 'message': result, 'criterions': criterions})
         return JsonResponse({'message': 'something get wrong'})
 
 

@@ -145,12 +145,17 @@
 
 
 
-.svg__test_in_progress{
-    height: 20px;
-    width: 20px;
+.svg__test_status{
+    height: 25px;
+    width: 25px;
 }
 
 @media (max-width: 768px) {
+    .svg__test_status{
+        height: 20px;
+        width: 20px;
+    }
+
     .test__cell {
         width: 100%
     }

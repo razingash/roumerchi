@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const submitButton = document.querySelector('.submit');
 
     const selectedAnswers = {};
-
     buttonStart.addEventListener('click', function () {
         testDescription.style.display = 'none';
         testWalkthrough.style.display = 'block';
@@ -67,7 +66,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 'selected_answers': answers
             },
             success: function (response) {
-                console.log('Success');
+                console.log(response)
+                console.log('status' + response.status)
+                console.log('data' + response.data)
+                console.log('message' + response.message)
+                if (response && response.status === 200) {
+                    $('#unique__result').html(response.message);
+                    $('#test__results').css('display', 'block')
+                    $('#test__walkthrough').css('display', 'none')
+
+                    $('[data-criterion-result-id]').each(function() {
+                        var criterionId = $(this).data('criterion-result-id');
+                        var criterionResult = response.criterions[criterionId];
+                        var roundedResult = Math.round((100 * criterionResult) / answers.length);
+                        $(this).html(roundedResult + " %");
+                    });
+                    $('[data-criterion-bar-id]').each(function () {
+                        var criterionId = $(this).data('criterion-bar-id');
+                        var criterionResult = response.criterions[criterionId];
+                        var roundedResult = Math.round((100 * criterionResult) / answers.length);
+                        $(this).css('width', roundedResult + "%")
+                    });
+                    console.log('Success');
+                    console.log(response.criterions)
+                } else {
+                    console.error('Error during sending POST request:', response.message);
+                }
             },
             error: function (xhr, status, error) {
                 console.error('Error during sending POST request:', error);

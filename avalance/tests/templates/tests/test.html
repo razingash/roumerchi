@@ -46,9 +46,24 @@
     </div>
     <div class="test__field" id="test__results">
         <div class="quetion__field">
-            <div class="result__unique"></div>
+            <div class="field__test">
+                <div class="test__diagram">
+                    {% for result in test.testcriterion_set.all %}
+                    <div class="diagram__item">
+                        <div class="digram__bar">
+                            <div class="bar__progress" data-criterion-bar-id="{{ result.criterion }}"></div>
+                        </div>
+                        <div class="diagram__info">
+                            <div class="diagram__result" data-criterion-result-id="{{ result.criterion }}"></div>
+                            <div class="diagram__criterion">{{ result.criterion }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="result__unique" id="unique__result"></div>
+            </div>
             <div class="test__results">
-                {% for result in test.testresult_set.all  %}
+                {% for result in test.testcriterion_set.all %}
                 <div class="result__static">{{ result.result }}</div>
                 {% endfor %}
             </div>
