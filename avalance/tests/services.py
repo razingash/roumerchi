@@ -17,8 +17,8 @@ def custom_exception(func: callable):
     return wrapper
 
 
-def get_profile_info(profile_id):
-    return CustomUser.objects.filter(id=profile_id)
+def get_profile_info(profile_uuid):
+    return CustomUser.objects.filter(uuid=profile_uuid)
 
 
 def get_test_info_by_slug(test_slug):
@@ -79,3 +79,8 @@ def create_new_test_respondent(sender_id, test_id, answers):
         else: # for guests
             pass
     raise CustomException('something went wrong')
+
+
+def validate_test_form():
+    pass
+

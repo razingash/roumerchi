@@ -8,10 +8,10 @@
     <link rel="icon" type="images/x-icon" href="{% static 'tests/favicon.ico' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'tests/css/core.css' %}">
     {% block additional_css %} {% endblock additional_css %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block additional_js %} {% endblock additional_js %}
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token }}">
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 </head>
 <body>
 <svg class="svg__list" xmlns="http://www.w3.org/2000/svg">
@@ -36,7 +36,7 @@
         <a href="{% url 'logout' %}" class="header__sitename">Roumerchi</a>
         <a href="#" class="header__item">Upcoming</a>
         <a href="{% url 'search_test' %}" class="header__item">Tests</a>
-        <a href="{% url 'profile' user_id %}" class="header__user_cover">
+        <a href="{% url 'profile' user_uuid %}" class="header__user_cover">
             <svg class="svg__user">
                 <use xlink:href="#icon_user"></use>
             </svg>

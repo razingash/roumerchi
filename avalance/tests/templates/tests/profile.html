@@ -9,12 +9,18 @@
 {% block content %}
     <div class="section">
         <div class="profile">
-            <div class="field__avatar">
-                <div class="avatar"></div>
+            <div class="profile__intro">
+                <div class="field__avatar">
+                    <div class="avatar"></div>
+                </div>
+                <div class="field__description">
+                    <div class="username">{{ user.username }}</div>
+                    <div class="description">description about me</div>
+                </div>
             </div>
-            <div class="field__description">
-                <div class="username">{{ user.username }}</div>
-                <div class="description">description about me</div>
+            <div class="profile__functions">
+                <a href="#" class="profile__settings">settings</a>
+                <a href="{% url 'new_test' %}" class="create__test">create test</a>
             </div>
         </div>
         <div class="profile__bar">
