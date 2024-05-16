@@ -1,0 +1,27 @@
+{% extends 'tests/base_profile.html' %}
+
+{% block extracontent %}
+<div class="content__bar">
+    {% if tests %}
+    {% for test in tests %}
+    <div class="content__item">
+        <div class="item__preview">{{ test.test.preview }}</div>
+        <a href="{{ test.test.get_absolute_url }}" class="item__link">check</a>
+        <div class="item__grade neutral">{{ test.test.grade }}</div>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="partition">
+        <div class="partition__big"></div>
+    </div>
+
+    <div class="pagination">
+        <a href="#" class="pagination__clickable"><</a>
+        <a href="#" class="pagination__clickable">1</a>
+        <a href="#" class="pagination__current">2</a>
+        <a href="#" class="pagination__clickable">3</a>
+        <a href="#" class="pagination__unclickable">></a>
+    </div>
+</div>
+{% endblock %}

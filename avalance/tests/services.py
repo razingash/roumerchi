@@ -28,6 +28,16 @@ def get_test_info_by_slug(test_slug):
     return queryset
 
 
+def get_user_tests(user_id):
+    return Test.objects.order_by('-id').filter(author_id=user_id)
+
+def get_user_completed_tests(user_id):
+    tests = Respondent.objects.select_related('test').order_by('-id').filter(user_id=user_id)
+    return tests
+
+def get_user_uncompleted_tests():
+    pass
+
 
 def calculate_test_result(test_id, answers): # добавить проверку на неравенство списков вопросов
     #TestQuestion.objects.prefetch_related('question', 'questionanswerchoice_set').filter(test_id=1)
@@ -79,8 +89,4 @@ def create_new_test_respondent(sender_id, test_id, answers):
         else: # for guests
             pass
     raise CustomException('something went wrong')
-
-
-def validate_test_form():
-    pass
 

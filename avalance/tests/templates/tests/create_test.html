@@ -27,6 +27,47 @@
                 $('#id_testcriterion_set-TOTAL_FORMS').val(totalForms + 1);
             }
         });
+        $('#delete_criterion_button').click(function() {
+            const totalForms = parseInt($('#id_testcriterion_set-TOTAL_FORMS').val());
+            if (!isNaN(totalForms) && totalForms > 2) {
+                $('#id_testcriterion_set-TOTAL_FORMS').val(totalForms - 1);
+                $('#criterions_formset').children('.empty_form').last().remove();
+                $('#criterions_formset').children('.form__row').last().find('[name$="-DELETE"]').prop('checked', true);
+            } else {
+                $('#id_testcriterion_set-TOTAL_FORMS').val(2);
+            }
+        });
+
+        $('#add_result_button').click(function() {
+            const totalForms = parseInt($('#id_testuniqueresult_set-TOTAL_FORMS').val());
+            if (!isNaN(totalForms)) {
+                const form_idx = totalForms;
+                const new_form = $('#empty_form_2').clone().removeAttr('id').removeClass('empty-form');
+                new_form.find('[for^="id_testuniqueresult_set-"]').each(function(){
+                    const new_for = $(this).attr('for').replace('__prefix__', form_idx);
+                    $(this).attr('for', new_for);
+                });
+                new_form.find('[id^="id_testuniqueresult_set-"]').each(function(){
+                    const new_id = $(this).attr('id').replace('__prefix__', form_idx);
+                    $(this).attr('id', new_id);
+                    const new_name = $(this).attr('name').replace('__prefix__', form_idx);
+                    $(this).attr('name', new_name);
+                    $(this).val('');
+                });
+                new_form.appendTo('#unique_results_formset').show();
+                $('#id_testuniqueresult_set-TOTAL_FORMS').val(totalForms + 1);
+            }
+        });
+        $('#delete_result_button').click(function() {
+            const totalForms = parseInt($('#id_testuniqueresult_set-TOTAL_FORMS').val());
+            if (!isNaN(totalForms) && totalForms > 2) {
+                $('#id_testuniqueresult_set-TOTAL_FORMS').val(totalForms - 1);
+                $('#unique_results_formset').children('.empty_form').last().remove();
+                $('#unique_results_formset').children('.form__row').last().find('[name$="-DELETE"]').prop('checked', true);
+            } else {
+                $('#id_testuniqueresult_set-TOTAL_FORMS').val(2);
+            }
+        });
     });
 </script>
 {% endblock %}
@@ -47,18 +88,21 @@
             <div class="hedge__info">
                 <div class="info">the number of criteries must be equal to the number of answers for one question</div>
                 <button type="button" class="button__create" id="add_criterion_button">add new criterion</button>
+                <button type="button" class="button__delete" id="delete_criterion_button">delete</button>
             </div>
             {{ formset.management_form }}
             <div id="criterions_formset">
             {% for form in formset %}
                 {% for f in form %}
+                {% if f.label == "Delete" or f.label == "Test" %}{% else %}
                 {{ f.id }}
                 <div class="form__row">
                     <div class="form__field">
-                        <label class="form-label {% if "Id" == f.label %}phantom{% elif "Delete" == f.label %}delete-label{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
+                        <label class="form-label {% if "Id" == f.label %}phantom{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
                     </div>
                     <div class="form-errors">{{ f.errors }}</div>
                 </div>
+                {% endif %}
                 {% endfor %}
             {% endfor %}
             </div>
@@ -66,20 +110,48 @@
             <div class="hedge__info">
                 <div class="info">the content of unique results for specific limits can be changed after the test is created</div>
                 <button type="button" class="button__create" id="add_result_button">add unique result</button>
+                <button type="button" class="button__delete" id="delete_result_button">delete</button>
             </div>
-            <div id="unique_results_formset"></div>
+            {{ formset2.management_form }}
+            <div id="unique_results_formset">
+            {% for form in formset2 %}
+                {% for f in form %}
+                {% if f.label == "Delete" or f.label == "Test" %}{% else %}
+                {{ f.id }}
+                <div class="form__row">
+                    <div class="form__field">
+                        <label class="form-label {% if "Id" == f.label %}phantom{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
+                    </div>
+                    <div class="form-errors">{{ f.errors }}</div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+            </div>
             <button type="submit" class="button__submit">submit</button>
         </form>
-        <!-- empty_form.html -->
         <div class="empty_form" id="empty_form">
-            {# {{ formset.empty_form.as_p }} #}
             {% for f in formset.empty_form.visible_fields %}
+            {% if f.label == "Delete" %}{% else %}
             <div class="form__row">
                 <div class="form__field">
-                    <label class="form-label {% if "Id" in f.label %}phantom{% elif "Delete" in f.label %}delete-label{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}:</label>{{ f }}
+                    <label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}:</label>{{ f }}
                 </div>
                 <div class="form-errors">{{ f.errors }}</div>
             </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        <div class="empty_form" id="empty_form_2">
+            {% for f in formset2.empty_form.visible_fields %}
+            {% if f.label == "Delete" %}{% else %}
+            <div class="form__row">
+                <div class="form__field">
+                    <label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}:</label>{{ f }}
+                </div>
+                <div class="form-errors">{{ f.errors }}</div>
+            </div>
+            {% endif %}
             {% endfor %}
         </div>
     </div>

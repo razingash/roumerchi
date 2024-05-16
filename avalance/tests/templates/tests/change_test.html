@@ -1,0 +1,63 @@
+{% extends 'tests/base.html' %}
+
+{% load static %}
+{% block additional_css %}
+    <link type="text/css" rel="stylesheet" href="{% static 'tests/css/create_test.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="section__identification">
+    <div class="identification__field">
+        <div class="identification__header"></div>
+        <form class="form__test" method="post">
+            {% csrf_token %}
+            {% for f in form %}
+                <div class="form__row">
+                    <div class="form__field">
+                        <label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
+                    </div>
+                    <div class="form-errors">{{ f.errors }}</div>
+                </div>
+            {% endfor %}
+            <div class="hedge__info">
+                <div class="info">the number of criteries must be equal to the number of answers for one question</div>
+            </div>
+            <div id="criterions_formset">
+            {% for form in criterions_forms %}
+                {% for f in form %}
+                {% if f.label == "Delete" or f.label == "Test" %}{% else %}
+                {{ f.id }}
+                <div class="form__row">
+                    <div class="form__field">
+                        <label class="form-label {% if "Id" == f.label %}phantom{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
+                    </div>
+                    <div class="form-errors">{{ f.errors }}</div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+            </div>
+            <div class="from-error">{{ form.non_field_errors }}</div>
+            <div class="hedge__info">
+                <div class="info">the content of unique results for specific limits can be changed after the test is created</div>
+            </div>
+            <div id="unique_results_formset">
+            {% for form in results_forms %}
+                {% for f in form %}
+                {% if f.label == "Delete" or f.label == "Test" %}{% else %}
+                {{ f.id }}
+                <div class="form__row">
+                    <div class="form__field">
+                        <label class="form-label {% if "Id" == f.label %}phantom{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
+                    </div>
+                    <div class="form-errors">{{ f.errors }}</div>
+                </div>
+                {% endif %}
+                {% endfor %}
+            {% endfor %}
+            </div>
+            <button type="submit" class="button__submit">submit</button>
+        </form>
+    </div>
+</div>
+{% endblock content %}

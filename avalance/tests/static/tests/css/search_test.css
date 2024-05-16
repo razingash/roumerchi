@@ -131,6 +131,7 @@
     flex-wrap: wrap;
     align-items: center;
     margin-left: 15px;
+    overflow-wrap: anywhere;
 }
 
 .item__reputation {

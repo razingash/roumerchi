@@ -6,7 +6,10 @@ urlpatterns = [
     path('register/', RegistrationPageView.as_view(), name='registration'),
     path('logout/', logout_user, name='logout'),
     path('profile/<uuid:profile_uuid>/', ProfileView.as_view(), name='profile'),
+    path('profile/completed-tests/<uuid:profile_uuid>/', ProfileCTestsView.as_view(), name='completed_tests'),
+    path('profile/uncompleted-tests/<uuid:profile_uuid>/', ProfileUTestsView.as_view(), name='uncompleted_tests'),
     path('search_test/', SearchTestsView.as_view(), name='search_test'),
+    path('create_test/', CreateTest.as_view(), name='new_test'),
     path('test/<slug:test_preview>/', TestView.as_view(), name='test'),
-    path('create_test/', CreateTest.as_view(), name='new_test')
+    path('change/test/<slug:test_preview>/', ChangeTest.as_view(), name='change_test'),
 ]

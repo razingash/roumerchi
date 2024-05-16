@@ -30,7 +30,7 @@ class CreateTestForm(forms.ModelForm):
         model = Test
         fields = ['category', 'preview', 'description']
         widgets = {
-            'preview': forms.TextInput(attrs={'cols': 60, 'rows': 1, 'class': 'form__input', 'placeholder': 'at least 40 symbols'}),
+            'preview': forms.TextInput(attrs={'class': 'form__input', 'placeholder': 'at least 10 symbols'}),
             'description': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea',
                                                  'placeholder': 'at least 500 symbols'})
         }
@@ -41,8 +41,8 @@ class CreateTestCriterionForm(forms.ModelForm):
         model = TestCriterion
         fields = ['criterion', 'result']
         widgets = {
-            'criterion': forms.TextInput(attrs={'cols': 60, 'rows': 1, 'class': 'form__input', 'maxlength': 25,
-                                                'minlength': 3, 'placeholder': 'from 3 to 25 symbols'}),
+            'criterion': forms.TextInput(attrs={'class': 'form__input', 'maxlength': 25, 'minlength': 3,
+                                                'placeholder': 'from 3 to 25 symbols'}),
             'result': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea', 'placeholder': 'at least 100 symbols'})
         }
 
@@ -54,9 +54,9 @@ class CreateTestUniqueResultForm(forms.ModelForm):
         widgets = {
             'points_min': forms.NumberInput(attrs={'max': 32767, 'cols': 40, 'rows': 1, 'class': 'form__input'}),
             'points_max': forms.NumberInput(attrs={'max': 32767, 'cols': 40, 'rows': 1, 'class': 'form__input'}),
-            'result': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea'})
+            'result': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea', 'placeholder': 'at least 100 symbols'})
         }
 
-CriterionFormSet = forms.inlineformset_factory(Test, TestCriterion, form=CreateTestCriterionForm, extra=1)
+CriterionFormSet = forms.inlineformset_factory(Test, TestCriterion, form=CreateTestCriterionForm, extra=2)
 
-unique_result_forms = forms.inlineformset_factory(Test, TestUniqueResult, form=CreateTestUniqueResultForm, extra=1)
+UniqueResultFormSet = forms.inlineformset_factory(Test, TestUniqueResult, form=CreateTestUniqueResultForm, extra=2)

@@ -78,7 +78,7 @@ class Test(models.Model):
     category = models.PositiveSmallIntegerField(choices=TestCategories.choices, blank=False, null=False)
     status = models.PositiveSmallIntegerField(choices=TestStatuses.choices, blank=False, null=False,
                                               default=TestStatuses.CHECKING)
-    preview = models.CharField(max_length=220, blank=False, null=False, validators=[MinLengthValidator(40)])
+    preview = models.CharField(max_length=220, blank=False, null=False, validators=[MinLengthValidator(10)])
     preview_slug = models.SlugField(blank=False, null=True, unique=True)
     description = models.TextField(max_length=5000, blank=False, null=False, validators=[MinLengthValidator(500)])
     questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(15),
