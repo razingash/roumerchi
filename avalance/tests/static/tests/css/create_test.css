@@ -16,7 +16,7 @@
 
 .identification__header {
     display: flex;
-    justify-content: center;
+    justify-content: space-around;
     background: #5757ff;
     padding: 10px 0 10px 0;
     border-radius: 6px 6px 0 0;
@@ -26,8 +26,17 @@
     font-family: roboto, serif;
     font-size: 1.5em;
     font-weight: 900;
-    letter-spacing: 0.5px;
+}
+
+.identification__item {
     color: #fff;
+    padding: 0 4px 0 4px;
+    border-radius: 5px;
+}
+
+.identification__item:hover {
+    box-shadow: 0 1px 10px 3px rgba(0, 0, 0, 0.4);
+    color: #ffe843;
 }
 
 .form__test {
@@ -81,6 +90,7 @@
     background: #5757ff;
     padding: 5px 15px 5px 15px;
     position: relative;
+    min-height: 1.5em;
 }
 
 .info{

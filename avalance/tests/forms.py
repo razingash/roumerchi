@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult
+from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult, Question, QuestionAnswerChoice, TestQuestion
 
 
 class RegisterCustomUserForm(UserCreationForm):
@@ -25,7 +25,7 @@ class LoginCustomUserForm(AuthenticationForm):
         fields = ['username', 'password']
 
 
-class CreateTestForm(forms.ModelForm):
+class TestForm(forms.ModelForm):
     class Meta:
         model = Test
         fields = ['category', 'preview', 'description']
@@ -36,7 +36,7 @@ class CreateTestForm(forms.ModelForm):
         }
 
 
-class CreateTestCriterionForm(forms.ModelForm):
+class TestCriterionForm(forms.ModelForm):
     class Meta:
         model = TestCriterion
         fields = ['criterion', 'result']
@@ -47,7 +47,7 @@ class CreateTestCriterionForm(forms.ModelForm):
         }
 
 
-class CreateTestUniqueResultForm(forms.ModelForm):
+class TestUniqueResultForm(forms.ModelForm):
     class Meta:
         model = TestUniqueResult
         fields = ['points_min', 'points_max', 'result']
@@ -57,6 +57,63 @@ class CreateTestUniqueResultForm(forms.ModelForm):
             'result': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea', 'placeholder': 'at least 100 symbols'})
         }
 
-CriterionFormSet = forms.inlineformset_factory(Test, TestCriterion, form=CreateTestCriterionForm, extra=2)
+CriterionFormSet = forms.inlineformset_factory(Test, TestCriterion, form=TestCriterionForm, extra=2)
+UniqueResultFormSet = forms.inlineformset_factory(Test, TestUniqueResult, form=TestUniqueResultForm, extra=2)
 
-UniqueResultFormSet = forms.inlineformset_factory(Test, TestUniqueResult, form=CreateTestUniqueResultForm, extra=2)
+TestCriterionFormSet = forms.inlineformset_factory(Test, TestCriterion, form=TestCriterionForm, extra=0)
+TestUniqueResultFormSet = forms.inlineformset_factory(Test, TestUniqueResult, form=TestUniqueResultForm, extra=0)
+
+
+class TestQuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['question']
+        widgets = {
+            'question': forms.Textarea(attrs={'cols': 60, 'rows': 4, 'class': 'form__textarea', 'placeholder': 'at least 10 symbols'})
+        }
+
+
+class TestQuestionAnswersForm(forms.ModelForm):
+    class Meta:
+        model = QuestionAnswerChoice
+        fields = ['id', 'answer', 'weight']
+        widgets = {
+            'answer': forms.Textarea(attrs={'cols': 60, 'rows': 3, 'class': 'form__textarea', 'placeholder': 'at least 2 symbols'}),
+            'weight': forms.NumberInput(attrs={'max': 32767, 'cols': 40, 'rows': 1, 'class': 'form__input'})
+        }
+
+
+QuestionFormSet = forms.modelformset_factory(Question, form=TestQuestionForm, extra=0)
+AnswerFormSet = forms.modelformset_factory(QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
+
+class QuestionChangeForm(forms.ModelForm):
+    question_formset = QuestionFormSet()
+
+    def __init__(self, *args, **kwargs):
+        super(QuestionChangeForm, self).__init__(*args, **kwargs)
+        test_questions = TestQuestion.objects.select_related('question').filter(test=self.instance)
+        questions = [test_question.question for test_question in test_questions]
+        self.question_formset = QuestionFormSet(queryset=Question.objects.filter(id__in=[question.id for question in questions]))
+        queryset = QuestionAnswerChoice.objects.filter(question_id__in=[question.id for question in questions])
+        self.answers_formset = AnswerFormSet(queryset=queryset)
+
+    class Meta:
+        model = Question
+        fields = ['question']
+
+
+class QuestionAnswersChangeForm(forms.ModelForm):
+    answers_formset = AnswerFormSet()
+
+    def __init__(self, *args, **kwargs):
+        super(QuestionAnswersChangeForm, self).__init__(*args, **kwargs)
+        test_questions = TestQuestion.objects.select_related('question').filter(test=self.instance)
+        questions = [test_question.question for test_question in test_questions]
+        queryset = QuestionAnswerChoice.objects.filter(question_id__in=[question.id for question in questions])
+        self.answers_formset = AnswerFormSet(queryset=queryset)
+
+    class Meta:
+        model = QuestionAnswerChoice
+        fields = ['id', 'answer', 'weight'] #нужно для галочки
+
+

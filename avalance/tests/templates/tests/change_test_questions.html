@@ -1,0 +1,54 @@
+{% extends 'tests/base.html' %}
+
+{% load static %}
+{% block additional_css %}
+    <link type="text/css" rel="stylesheet" href="{% static 'tests/css/create_test.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="section__identification">
+    <div class="identification__field">
+        <div class="identification__header">
+            <a href="{% url 'change_questions' preview_slug %}" class="identification__item">Change questions</a>
+            <a href="{% url 'change_test' preview_slug %}" class="identification__item">Change test</a>
+        </div>
+        <form class="form__test" method="post">
+            {% csrf_token %}
+            <div id="criterions_formset">
+            {{ questions_forms.management_form }}
+            {{ answers_forms.management_form }}
+            {% for form in questions_forms.question_formset %}
+                {% for f in form %}
+                {% if f.label == "Delete" or f.label == "Test" %}{% else %}
+                {{ f.id }}
+                <div class="form__row">
+                    <div class="form__field">
+                        <label class="form-label {% if "Id" == f.label %}phantom{% endif %}" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
+                    </div>
+                    <div class="form-errors">{{ f.errors }}</div>
+                </div>
+                {% endif %}
+                {% endfor %}
+                {% for answer_form in answers_forms.answers_formset %}
+                    {% if answer_form.instance.question_id == form.instance.id %}
+                    {% for ff in answer_form %}
+                        {% if ff.label == "Delete" or ff.label == "Test" %}{% else %}
+                            {{ ff.id }}
+                            <div class="form__row">
+                                <div class="form__field">
+                                    <label class="form-label {% if "Id" == ff.label %}phantom{% endif %}" for="{{ ff.id_for_label }}">{{ ff.label }}: </label>{{ ff }}
+                                </div>
+                                <div class="form-errors">{{ ff.errors }}</div>
+                            </div>
+                        {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                {% endfor %}
+            {% endfor %}
+            </div>
+            <div class="from-error">{{ form.non_field_errors }}</div>
+            <button type="submit" class="button__submit">submit</button>
+        </form>
+    </div>
+</div>
+{% endblock content %}

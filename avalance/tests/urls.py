@@ -11,5 +11,6 @@ urlpatterns = [
     path('search_test/', SearchTestsView.as_view(), name='search_test'),
     path('create_test/', CreateTest.as_view(), name='new_test'),
     path('test/<slug:test_preview>/', TestView.as_view(), name='test'),
-    path('change/test/<slug:test_preview>/', ChangeTest.as_view(), name='change_test'),
+    path('change-test/test/<slug:test_preview>/', ChangeTestInfo.as_view(), name='change_test'),
+    path('change-questions/test/<slug:test_preview>/', ChangeTestQuestions.as_view(), name='change_questions'),
 ]

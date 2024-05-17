@@ -138,6 +138,9 @@ class TestGrade(models.Model):
 class Question(models.Model):
     question = models.CharField(max_length=110, validators=[MinLengthValidator(10)])
 
+    def __str__(self):
+        return self.question
+
 
 class TestQuestion(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
@@ -147,7 +150,7 @@ class TestQuestion(models.Model):
 class QuestionAnswerChoice(models.Model):
     question = models.ForeignKey(TestQuestion, on_delete=models.CASCADE)
     criterion = models.ForeignKey(TestCriterion, on_delete=models.CASCADE)
-    answer = models.CharField(max_length=110, blank=False, null=False)
+    answer = models.CharField(max_length=110, blank=False, null=False, validators=[MinLengthValidator(2)])
     weight = models.PositiveSmallIntegerField(blank=False, null=False)
 
 

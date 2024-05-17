@@ -1,18 +1,16 @@
-import json
 
 from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
-from django.forms import modelformset_factory, inlineformset_factory
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
 
-from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, CreateTestForm, CreateTestCriterionForm, \
-    CreateTestUniqueResultForm, CriterionFormSet, UniqueResultFormSet
-from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult
+from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
+    UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, QuestionChangeForm, QuestionAnswersChangeForm
+from tests.models import CustomUser, Test
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
     get_user_tests, get_user_completed_tests
 from tests.utils import DataMixin
@@ -150,7 +148,6 @@ class TestView(DetailView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        test_id = context.get('test').id
         if self.request.user.is_authenticated:
             mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid)
         else:
@@ -178,7 +175,7 @@ class TestView(DetailView, DataMixin):
 
 class CreateTest(FormView, LoginRequiredMixin, DataMixin):
     template_name = 'tests/create_test.html'
-    form_class = CreateTestForm
+    form_class = TestForm
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -207,46 +204,38 @@ class CreateTest(FormView, LoginRequiredMixin, DataMixin):
 
 
 
-class ChangeTest(FormView, LoginRequiredMixin, DataMixin):
+class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin):
     template_name = 'tests/change_test.html'
-    form_class = CreateTestForm
+    form_class = TestForm
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            test_preview = self.kwargs['test_preview']
-            #test_id = Test.objects.only('id').get(preview_slug=test_preview)
-            #criterions_forms = [CreateTestCriterionForm(instance=criterion) for criterion in TestCriterion.objects.filter(test_id=test_id)]
-            #results_forms = [CreateTestUniqueResultForm(instance=result) for result in TestUniqueResult.objects.filter(test_id=test_id)]
-            test_instance = Test.objects.prefetch_related('testcriterion_set', 'testuniqueresult_set').get(preview_slug=test_preview)
-            criterions_forms = [CreateTestCriterionForm(instance=criterion) for criterion in test_instance.testcriterion_set.all()]
-            results_forms = [CreateTestUniqueResultForm(instance=result) for result in test_instance.testuniqueresult_set.all()]
+            test_obj = self.get_object()
 
-            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, criterions_forms=criterions_forms, results_forms=results_forms)
+            if self.request.method == 'GET':
+                criterions_forms = TestCriterionFormSet(instance=test_obj)
+                results_forms = TestUniqueResultFormSet(instance=test_obj)
+            else:
+                criterions_forms = TestCriterionFormSet(self.request.POST, instance=test_obj)
+                results_forms = TestUniqueResultFormSet(self.request.POST, instance=test_obj)
+
+            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, results_forms=results_forms,
+                                        criterions_forms=criterions_forms, preview_slug=self.kwargs['test_preview'])
 
             return context | mix
 
     def form_valid(self, form):
-        test_instance = form.save(commit=False)
-        test_instance.author = self.request.user
-        test_instance.save()
+        context = self.get_context_data()
+        criterion_formset = context['criterions_forms']
+        unique_result_formset = context['results_forms']
+        if criterion_formset.is_valid() and unique_result_formset.is_valid():
+            form.save()
+            criterion_formset.save()
+            unique_result_formset.save()
+            return redirect(self.get_success_url())
 
-        post_data = self.request.POST
-        print(post_data)
-        for prefix in post_data.keys():
-            if prefix.startswith('criterion'):
-                criterion_formset = CreateTestCriterionForm(prefix=prefix, instance=test_instance, data=post_data)
-                if criterion_formset.is_valid():
-                    criterion_formset.save()
-                else:
-                    print("Criterion formset errors:", criterion_formset.errors)
-
-            if prefix.startswith('result'):
-                unique_result_formset = CreateTestUniqueResultForm(prefix=prefix, instance=test_instance, data=post_data)
-                if unique_result_formset.is_valid():
-                    unique_result_formset.save()
-
-        return super().form_valid(form)
+        return self.render_to_response(self.get_context_data(form=form))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -254,9 +243,62 @@ class ChangeTest(FormView, LoginRequiredMixin, DataMixin):
         kwargs['instance'] = test_instance
         return kwargs
 
+    def get_object(self):
+        test_preview = self.kwargs['test_preview']
+        return get_object_or_404(Test, preview_slug=test_preview)
+
     def get_success_url(self):
         user_uuid = self.request.user.uuid
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+
+
+class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
+    template_name = 'tests/change_test_questions.html'
+    form_class = TestForm
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            test_obj = self.get_object()
+            if self.request.method == 'GET':
+                questions_formset = QuestionChangeForm(instance=test_obj)
+                answers_formset = QuestionAnswersChangeForm(instance=test_obj)
+            else:
+                questions_formset = QuestionChangeForm(self.request.POST, instance=test_obj)
+                answers_formset = QuestionAnswersChangeForm(self.request.POST, instance=test_obj)
+
+            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, answers_forms=answers_formset,
+                                        questions_forms=questions_formset, preview_slug=self.kwargs['test_preview'])
+
+            return context | mix
+
+    def form_valid(self, form):
+        print('form_valid') #
+        context = self.get_context_data()
+        questions_formset = context['questions_forms']
+        answers_formset = context['answers_forms']
+        if questions_formset.is_valid() and answers_formset.is_valid():
+            form.save()
+            questions_formset.save()
+            answers_formset.save()
+            return redirect(self.get_success_url())
+
+        return self.render_to_response(self.get_context_data(form=form))
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        test_instance = Test.objects.only('id', 'preview', 'category', 'description').get(preview_slug=self.kwargs['test_preview'])
+        kwargs['instance'] = test_instance
+        return kwargs
+
+    def get_object(self):
+        test_preview = self.kwargs['test_preview']
+        return get_object_or_404(Test, preview_slug=test_preview)
+
+    def get_success_url(self):
+        user_uuid = self.request.user.uuid
+        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+
 
 
 def logout_user(request):
