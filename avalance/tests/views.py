@@ -9,7 +9,7 @@ from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
 
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
-    UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, QuestionChangeForm, QuestionAnswersChangeForm
+    UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, QuestionChangeForm
 from tests.models import CustomUser, Test
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
     get_user_tests, get_user_completed_tests
@@ -204,7 +204,7 @@ class CreateTest(FormView, LoginRequiredMixin, DataMixin):
 
 
 
-class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin):
+class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin): # убрать DELETE из шаблона при генерации
     template_name = 'tests/change_test.html'
     form_class = TestForm
 
@@ -219,17 +219,15 @@ class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin):
             else:
                 criterions_forms = TestCriterionFormSet(self.request.POST, instance=test_obj)
                 results_forms = TestUniqueResultFormSet(self.request.POST, instance=test_obj)
-
             mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, results_forms=results_forms,
                                         criterions_forms=criterions_forms, preview_slug=self.kwargs['test_preview'])
-
             return context | mix
 
     def form_valid(self, form):
         context = self.get_context_data()
         criterion_formset = context['criterions_forms']
         unique_result_formset = context['results_forms']
-        if criterion_formset.is_valid() and unique_result_formset.is_valid():
+        if form.is_valid() and criterion_formset.is_valid() and unique_result_formset.is_valid():
             form.save()
             criterion_formset.save()
             unique_result_formset.save()
@@ -261,33 +259,41 @@ class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
             if self.request.method == 'GET':
-                questions_formset = QuestionChangeForm(instance=test_obj)
-                answers_formset = QuestionAnswersChangeForm(instance=test_obj)
+                question_formset = QuestionChangeForm(instance=test_obj)
+                #answers_formset = QuestionAnswersChangeForm(instance=test_obj)
             else:
-                questions_formset = QuestionChangeForm(self.request.POST, instance=test_obj)
-                answers_formset = QuestionAnswersChangeForm(self.request.POST, instance=test_obj)
-
-            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, answers_forms=answers_formset,
-                                        questions_forms=questions_formset, preview_slug=self.kwargs['test_preview'])
+                question_formset = QuestionChangeForm(self.request.POST, instance=test_obj)
+                #answers_formset = QuestionAnswersChangeForm(self.request.POST, instance=test_obj)
+            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid,# answers_forms=answers_formset,
+                                        questions_forms=question_formset, preview_slug=self.kwargs['test_preview'])
 
             return context | mix
 
     def form_valid(self, form):
-        print('form_valid') #
         context = self.get_context_data()
+        #context['questions_forms'].question_formset - данные которые были инициализированы при GET запросе изначально
+        #context['questions_forms'] - данные которые были отправлены POST запросом
         questions_formset = context['questions_forms']
-        answers_formset = context['answers_forms']
-        if questions_formset.is_valid() and answers_formset.is_valid():
-            form.save()
+        print(questions_formset.__dict__)
+        #print(questions_formset.__dict__)
+        #answers_formset = context['answers_forms']
+        if questions_formset.is_valid():
+            print('questions_formset is valid')
+        else:
+            for f in questions_formset:
+                print(f'questions_formset {f.__dict__} is not valid', questions_formset.errors)
+        if questions_formset.is_valid():# and answers_formset.is_valid():
+            print('valid')
+            #print(questions_formset)
             questions_formset.save()
-            answers_formset.save()
+            #answers_formset.save()
             return redirect(self.get_success_url())
 
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        test_instance = Test.objects.only('id', 'preview', 'category', 'description').get(preview_slug=self.kwargs['test_preview'])
+        test_instance = Test.objects.prefetch_related('testquestion_set__question').get(preview_slug=self.kwargs['test_preview'])
         kwargs['instance'] = test_instance
         return kwargs
 

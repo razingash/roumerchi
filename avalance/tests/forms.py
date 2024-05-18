@@ -83,7 +83,7 @@ class TestQuestionAnswersForm(forms.ModelForm):
         }
 
 
-QuestionFormSet = forms.modelformset_factory(Question, form=TestQuestionForm, extra=0)
+QuestionFormSet = forms.modelformset_factory(Question, form=TestQuestionForm, extra=0) # +
 AnswerFormSet = forms.modelformset_factory(QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
 
 class QuestionChangeForm(forms.ModelForm):
@@ -94,12 +94,20 @@ class QuestionChangeForm(forms.ModelForm):
         test_questions = TestQuestion.objects.select_related('question').filter(test=self.instance)
         questions = [test_question.question for test_question in test_questions]
         self.question_formset = QuestionFormSet(queryset=Question.objects.filter(id__in=[question.id for question in questions]))
-        queryset = QuestionAnswerChoice.objects.filter(question_id__in=[question.id for question in questions])
-        self.answers_formset = AnswerFormSet(queryset=queryset)
+        #queryset = QuestionAnswerChoice.objects.filter(question_id__in=[question.id for question in questions])
+        #self.answers_formset = AnswerFormSet(queryset=queryset)
+        #print(self.question_formset)
 
     class Meta:
-        model = Question
-        fields = ['question']
+        model = Test
+        fields = ['category', 'preview', 'description']
+        widgets = {
+            'preview': forms.TextInput(attrs={'class': 'form__input', 'placeholder': 'at least 10 symbols'}),
+            'description': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea',
+                                                 'placeholder': 'at least 500 symbols'})
+        }
+
+
 
 
 class QuestionAnswersChangeForm(forms.ModelForm):

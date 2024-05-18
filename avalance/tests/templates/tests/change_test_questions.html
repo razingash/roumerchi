@@ -12,11 +12,18 @@
             <a href="{% url 'change_questions' preview_slug %}" class="identification__item">Change questions</a>
             <a href="{% url 'change_test' preview_slug %}" class="identification__item">Change test</a>
         </div>
-        <form class="form__test" method="post">
+        <form class="form__test" method="post" enctype="multipart/form-data">
             {% csrf_token %}
+            {% for f in form %}
+                <div class="form__row">
+                    <div class="form__field">
+                        <label class="form-label" for="{{ f.id_for_label }}">{{ f.label }}: </label>{{ f }}
+                    </div>
+                    <div class="form-errors">{{ f.errors }}</div>
+                </div>
+            {% endfor %}
             <div id="criterions_formset">
             {{ questions_forms.management_form }}
-            {{ answers_forms.management_form }}
             {% for form in questions_forms.question_formset %}
                 {% for f in form %}
                 {% if f.label == "Delete" or f.label == "Test" %}{% else %}
@@ -28,21 +35,6 @@
                     <div class="form-errors">{{ f.errors }}</div>
                 </div>
                 {% endif %}
-                {% endfor %}
-                {% for answer_form in answers_forms.answers_formset %}
-                    {% if answer_form.instance.question_id == form.instance.id %}
-                    {% for ff in answer_form %}
-                        {% if ff.label == "Delete" or ff.label == "Test" %}{% else %}
-                            {{ ff.id }}
-                            <div class="form__row">
-                                <div class="form__field">
-                                    <label class="form-label {% if "Id" == ff.label %}phantom{% endif %}" for="{{ ff.id_for_label }}">{{ ff.label }}: </label>{{ ff }}
-                                </div>
-                                <div class="form-errors">{{ ff.errors }}</div>
-                            </div>
-                        {% endif %}
-                    {% endfor %}
-                    {% endif %}
                 {% endfor %}
             {% endfor %}
             </div>
