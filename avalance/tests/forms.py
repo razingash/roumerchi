@@ -83,39 +83,8 @@ class TestQuestionAnswersForm(forms.ModelForm):
         }
 
 
-class QuestionChangeForm(forms.ModelForm):
-    class Meta:
-        model = Test
-        fields = ['category', 'preview', 'description']
-        widgets = {
-            'preview': forms.TextInput(attrs={'class': 'form__input', 'placeholder': 'at least 10 symbols'}),
-            'description': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea',
-                                                 'placeholder': 'at least 500 symbols'})
-        }
-
-
 TestQuestionFormSet = forms.inlineformset_factory(Test, TestQuestion, form=TestQuestionForm, extra=0)
-#выше все работает
-
-
 TestQuestionAnswersFormSet = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
 
-
-#ниже нахер надо пока
-AnswerFormSet = forms.modelformset_factory(QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
-
-class QuestionAnswersChangeForm(forms.ModelForm):
-    answers_formset = AnswerFormSet()
-
-    def __init__(self, *args, **kwargs):
-        super(QuestionAnswersChangeForm, self).__init__(*args, **kwargs)
-        test_questions = TestQuestion.objects.select_related('question').filter(test=self.instance)
-        questions = [test_question.question for test_question in test_questions]
-        queryset = QuestionAnswerChoice.objects.filter(question_id__in=[question.id for question in questions])
-        self.answers_formset = AnswerFormSet(queryset=queryset)
-
-    class Meta:
-        model = QuestionAnswerChoice
-        fields = ['id', 'answer', 'weight'] #нужно для галочки
 
 

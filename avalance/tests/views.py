@@ -9,7 +9,7 @@ from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
 
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
-    UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, QuestionChangeForm, TestQuestionFormSet, \
+    UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
     TestQuestionAnswersFormSet
 from tests.models import CustomUser, Test
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
@@ -254,22 +254,31 @@ class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin): # убрать DE
 class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
     template_name = 'tests/change_test_questions.html'
     form_class = TestForm
+    paginate_by = 1
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
-            #td = Test.objects.prefetch_related('testquestion_set__questionanswerchoice_set').get(id=1).testquestion_set.all()
             if self.request.method == 'GET':
-                question_formset = TestQuestionFormSet(instance=test_obj)
-                #answers_formset = TestQuestionAnswersFormSet(queryset=test_obj.testquestion_set.all())
-                formsets = [TestQuestionAnswersFormSet(instance=test_question) for test_question in
+                question_formset = TestQuestionFormSet(instance=test_obj, prefix='question')
+                formsets = [TestQuestionAnswersFormSet(instance=test_question, prefix=f'answer_{test_question.id}') for
+                            test_question in
                             test_obj.testquestion_set.all()]
             else:
-                question_formset = TestQuestionFormSet(self.request.POST, instance=test_obj)
-                #answers_formset = TestQuestionAnswersFormSet(self.request.POST, instance=test_obj)
-                formsets = [TestQuestionAnswersFormSet(self.request.POST, instance=test_question) for test_question in
+                question_formset = TestQuestionFormSet(self.request.POST, instance=test_obj, prefix='question')
+                formsets = [TestQuestionAnswersFormSet(self.request.POST, instance=test_question,
+                                                       prefix=f'answer_{test_question.id}') for test_question in
                             test_obj.testquestion_set.all()]
+            #print(formsets)
+
+            #page_number = self.request.GET.get('page')
+
+            #question_paginator = Paginator(question_formset, self.paginate_by)
+            #question_page_obj = question_paginator.get_page(page_number)
+            #answers_paginator = Paginator(formsets, self.paginate_by)
+            #answers_page_obj = answers_paginator.get_page(page_number)
+
             mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, answers_forms=formsets,
                                         questions_forms=question_formset, preview_slug=self.kwargs['test_preview'])
 
@@ -279,15 +288,19 @@ class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
         context = self.get_context_data()
         questions_formset = context['questions_forms']
         answers_formsets = context['answers_forms']
-        print(questions_formset.__dict__)
+        print(answers_formsets)
+        #page_number = self.request.GET.get('page')
+        #print(questions_formset.paginator.object_list.__dict__)
+
         if questions_formset.is_valid():
-            print('questions_formset is valid')
-        else:
-            for f in questions_formset:
-                print(f'questions_formset {f.__dict__} is not valid', questions_formset.errors)
-        if questions_formset.is_valid() and [answers_formset.is_valid() for answers_formset in answers_formsets]:
             questions_formset.save()
-            [answers_formset.save() for answers_formset in answers_formsets]
+            for answers_formset in answers_formsets:
+                if answers_formset.is_valid():
+                    print(answers_formset.queryset[0].__dict__)
+                    answers_formset.save()
+                else:
+                    print(f'error {answers_formset.errors}')
+
             return redirect(self.get_success_url())
 
         return self.render_to_response(self.get_context_data(form=form))
