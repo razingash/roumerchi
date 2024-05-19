@@ -26,12 +26,9 @@ TestUniqueResult.objects.create(test=test1, points_min=32, points_max=40, result
 
 
 for i in range(15):
-    q = Question.objects.create(question=f"Question number {i+1}")
-    TestQuestion.objects.create(test=test1, question=q)
-
-for i in range(15):
-    QuestionAnswerChoice.objects.create(question=TestQuestion.objects.get(id=i+1), answer=True, weight=1, criterion=criterion1)
-    QuestionAnswerChoice.objects.create(question=TestQuestion.objects.get(id=i+1), answer=False, weight=0, criterion=criterion2)
+    q = TestQuestion.objects.create(question=f"Question number {i+1}", test=test1)
+    QuestionAnswerChoice.objects.create(question=q, answer=True, weight=1, criterion=criterion1)
+    QuestionAnswerChoice.objects.create(question=q, answer=False, weight=0, criterion=criterion2)
 
 for user in users:
     respondent = Respondent.objects.create(user=user, test=test1)

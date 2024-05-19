@@ -9,7 +9,8 @@ from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
 
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
-    UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, QuestionChangeForm
+    UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, QuestionChangeForm, TestQuestionFormSet, \
+    TestQuestionAnswersFormSet
 from tests.models import CustomUser, Test
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
     get_user_tests, get_user_completed_tests
@@ -258,42 +259,42 @@ class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
+            #td = Test.objects.prefetch_related('testquestion_set__questionanswerchoice_set').get(id=1).testquestion_set.all()
             if self.request.method == 'GET':
-                question_formset = QuestionChangeForm(instance=test_obj)
-                #answers_formset = QuestionAnswersChangeForm(instance=test_obj)
+                question_formset = TestQuestionFormSet(instance=test_obj)
+                #answers_formset = TestQuestionAnswersFormSet(queryset=test_obj.testquestion_set.all())
+                formsets = [TestQuestionAnswersFormSet(instance=test_question) for test_question in
+                            test_obj.testquestion_set.all()]
             else:
-                question_formset = QuestionChangeForm(self.request.POST, instance=test_obj)
-                #answers_formset = QuestionAnswersChangeForm(self.request.POST, instance=test_obj)
-            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid,# answers_forms=answers_formset,
+                question_formset = TestQuestionFormSet(self.request.POST, instance=test_obj)
+                #answers_formset = TestQuestionAnswersFormSet(self.request.POST, instance=test_obj)
+                formsets = [TestQuestionAnswersFormSet(self.request.POST, instance=test_question) for test_question in
+                            test_obj.testquestion_set.all()]
+            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, answers_forms=formsets,
                                         questions_forms=question_formset, preview_slug=self.kwargs['test_preview'])
 
             return context | mix
 
     def form_valid(self, form):
         context = self.get_context_data()
-        #context['questions_forms'].question_formset - данные которые были инициализированы при GET запросе изначально
-        #context['questions_forms'] - данные которые были отправлены POST запросом
         questions_formset = context['questions_forms']
+        answers_formsets = context['answers_forms']
         print(questions_formset.__dict__)
-        #print(questions_formset.__dict__)
-        #answers_formset = context['answers_forms']
         if questions_formset.is_valid():
             print('questions_formset is valid')
         else:
             for f in questions_formset:
                 print(f'questions_formset {f.__dict__} is not valid', questions_formset.errors)
-        if questions_formset.is_valid():# and answers_formset.is_valid():
-            print('valid')
-            #print(questions_formset)
+        if questions_formset.is_valid() and [answers_formset.is_valid() for answers_formset in answers_formsets]:
             questions_formset.save()
-            #answers_formset.save()
+            [answers_formset.save() for answers_formset in answers_formsets]
             return redirect(self.get_success_url())
 
         return self.render_to_response(self.get_context_data(form=form))
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        test_instance = Test.objects.prefetch_related('testquestion_set__question').get(preview_slug=self.kwargs['test_preview'])
+        test_instance = Test.objects.get(preview_slug=self.kwargs['test_preview']) # .prefetch_related('testquestion_set')
         kwargs['instance'] = test_instance
         return kwargs
 

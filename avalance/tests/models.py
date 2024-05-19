@@ -135,13 +135,9 @@ class TestGrade(models.Model):
     grade = models.ForeignKey(Grade, on_delete=models.CASCADE)
 
 
-class Question(models.Model):
-    question = models.CharField(max_length=110, validators=[MinLengthValidator(10)])
-
-
 class TestQuestion(models.Model):
+    question = models.CharField(max_length=110, validators=[MinLengthValidator(10)])
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
-    question = models.ForeignKey(Question, on_delete=models.CASCADE)
 
 
 class QuestionAnswerChoice(models.Model):

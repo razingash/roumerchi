@@ -1,6 +1,6 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult, Question, QuestionAnswerChoice, TestQuestion
+from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult, QuestionAnswerChoice, TestQuestion
 
 
 class RegisterCustomUserForm(UserCreationForm):
@@ -66,7 +66,7 @@ TestUniqueResultFormSet = forms.inlineformset_factory(Test, TestUniqueResult, fo
 
 class TestQuestionForm(forms.ModelForm):
     class Meta:
-        model = Question
+        model = TestQuestion
         fields = ['question']
         widgets = {
             'question': forms.Textarea(attrs={'cols': 60, 'rows': 4, 'class': 'form__textarea', 'placeholder': 'at least 10 symbols'})
@@ -83,21 +83,7 @@ class TestQuestionAnswersForm(forms.ModelForm):
         }
 
 
-QuestionFormSet = forms.modelformset_factory(Question, form=TestQuestionForm, extra=0) # +
-AnswerFormSet = forms.modelformset_factory(QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
-
 class QuestionChangeForm(forms.ModelForm):
-    question_formset = QuestionFormSet()
-
-    def __init__(self, *args, **kwargs):
-        super(QuestionChangeForm, self).__init__(*args, **kwargs)
-        test_questions = TestQuestion.objects.select_related('question').filter(test=self.instance)
-        questions = [test_question.question for test_question in test_questions]
-        self.question_formset = QuestionFormSet(queryset=Question.objects.filter(id__in=[question.id for question in questions]))
-        #queryset = QuestionAnswerChoice.objects.filter(question_id__in=[question.id for question in questions])
-        #self.answers_formset = AnswerFormSet(queryset=queryset)
-        #print(self.question_formset)
-
     class Meta:
         model = Test
         fields = ['category', 'preview', 'description']
@@ -108,7 +94,15 @@ class QuestionChangeForm(forms.ModelForm):
         }
 
 
+TestQuestionFormSet = forms.inlineformset_factory(Test, TestQuestion, form=TestQuestionForm, extra=0)
+#выше все работает
 
+
+TestQuestionAnswersFormSet = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
+
+
+#ниже нахер надо пока
+AnswerFormSet = forms.modelformset_factory(QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
 
 class QuestionAnswersChangeForm(forms.ModelForm):
     answers_formset = AnswerFormSet()
