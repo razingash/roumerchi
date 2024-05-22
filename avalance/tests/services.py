@@ -8,13 +8,19 @@ class CustomException(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-def custom_exception(func: callable):
-    def wrapper(request, *args, **kwargs):
-        try:
-            return func(request, *args, **kwargs)
-        except CustomException as e:
-            return Response({"error": f"{e}"}, status=400)
-    return wrapper
+def custom_exception(expected_return=None):
+    def decorator(func: callable):
+        def wrapper(request, *args, **kwargs):
+            try:
+                return func(request, *args, **kwargs)
+            except CustomException as e:
+                print(f"error:{e}")
+                if expected_return is None:
+                    pass
+                else:
+                    return expected_return
+        return wrapper
+    return decorator
 
 
 def get_profile_info(profile_uuid):
@@ -89,4 +95,13 @@ def create_new_test_respondent(sender_id, test_id, answers):
         else: # for guests
             pass
     raise CustomException('something went wrong')
+
+@custom_exception(expected_return=0)
+def validate_paginator_get_attribute(page_number):
+    try:
+        page_number = int(page_number or 1) - 1
+    except ValueError:
+        raise CustomException(f'An invalid get attribute was passed during pagination:  {page_number}')
+    page_number = 0 if page_number < 0 else page_number
+    return page_number
 

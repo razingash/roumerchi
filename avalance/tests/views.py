@@ -3,7 +3,7 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
@@ -13,7 +13,7 @@ from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, C
     TestQuestionAnswersFormSet
 from tests.models import CustomUser, Test
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
-    get_user_tests, get_user_completed_tests
+    get_user_tests, get_user_completed_tests, validate_paginator_get_attribute
 from tests.utils import DataMixin
 
 
@@ -204,8 +204,7 @@ class CreateTest(FormView, LoginRequiredMixin, DataMixin):
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
 
 
-
-class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin): # убрать DELETE из шаблона при генерации
+class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin):
     template_name = 'tests/change_test.html'
     form_class = TestForm
 
@@ -260,40 +259,42 @@ class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
+            page_number = self.request.GET.get('page')
+
             if self.request.method == 'GET':
                 question_formset = TestQuestionFormSet(instance=test_obj, prefix='question')
-                formsets = [TestQuestionAnswersFormSet(instance=test_question, prefix=f'answer_{test_question.id}') for
-                            test_question in
-                            test_obj.testquestion_set.all()]
             else:
                 question_formset = TestQuestionFormSet(self.request.POST, instance=test_obj, prefix='question')
-                formsets = [TestQuestionAnswersFormSet(self.request.POST, instance=test_question,
-                                                       prefix=f'answer_{test_question.id}') for test_question in
-                            test_obj.testquestion_set.all()]
-            #print(formsets)
-            #print(test_obj.testquestion_set.all())
-            page_number = self.request.GET.get('page')
+
             question_paginator = Paginator(question_formset, self.paginate_by)
             question_page_obj = question_paginator.get_page(page_number)
-            #answers_paginator = Paginator(formsets, self.paginate_by)
-            #answers_page_obj = answers_paginator.get_page(page_number)
+
+            page_number = validate_paginator_get_attribute(page_number)
+            try:
+                instance = test_obj.testquestion_set.all()[page_number]
+            except IndexError:
+                answer_formset = []
+            else:
+                if self.request.method == 'GET':
+                    answer_formset = [TestQuestionAnswersFormSet(instance=instance, prefix=f'answer_{instance.id}')]
+                else:
+                    answer_formset = [TestQuestionAnswersFormSet(self.request.POST, instance=instance,
+                                      prefix=f'answer_{instance.id}')]
 
             mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, preview_slug=self.kwargs['test_preview'],
-                                        answers_forms=formsets, question_page_obj=question_page_obj,
+                                        answers_forms=answer_formset, question_page_obj=question_page_obj,
                                         questions_forms=question_page_obj.object_list, question_management_form=question_formset.management_form)
-            #print(question_page_obj)
             return context | mix
 
     def form_valid(self, form):
         context = self.get_context_data()
-        #questions_formset = context['question_page_obj'].paginator.object_list
         answers_formsets = context['answers_forms']
-        page_number = self.request.GET.get('page')
-        #print(f'{answers_formsets}\n\n')
+        # questions_formset = context['question_page_obj'].paginator.object_list
+        #page_number = self.request.GET.get('page')
+
         question_form = context['questions_forms'][0]
-        #print(questions_formset.paginator.object_list.__dict__)
+
         if context['questions_forms'][0].is_valid():
-            print(1)
             context['questions_forms'][0].save()
         else:
             print(f'error: {form.errors}')

@@ -35,7 +35,26 @@
                 </div>
                 {% endif %}
                 {% endfor %}
-
+                {% for answer_form in answers_forms %}
+                    {% for answer in answer_form %}
+                        {% if answer.instance.question_id == form.instance.id %}
+                            {% if answer_form.forms %}
+                                {{ answer_form.management_form }}
+                                {% for ff in answer %}
+                                    {% if ff.label != "Delete" and ff.label != "Test" and ff.label != 'Question' %}
+                                        {{ ff.id }}
+                                        <div class="form__row">
+                                            <div class="form__field">
+                                                <label class="form-label {% if "Id" == ff.label %}phantom{% endif %}" for="{{ ff.id_for_label }}">{{ ff.label }}: </label>{{ ff }}
+                                            </div>
+                                            <div class="form-errors">{{ ff.errors }}</div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% endfor %}
             {% endfor %}
             <div class="from-error">{{ form.non_field_errors }}</div>
             <button type="submit" class="button__submit">submit</button>
