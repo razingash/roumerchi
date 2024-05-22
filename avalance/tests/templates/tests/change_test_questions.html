@@ -22,8 +22,7 @@
                     <div class="form-errors">{{ f.errors }}</div>
                 </div>
             {% endfor %}
-            <div id="criterions_formset">
-            {{ questions_forms.management_form }}
+            {{ question_management_form }}
             {% for form in questions_forms %}
                 {% for f in form %}
                 {% if f.label == "Delete" or f.label == "Test" %}{% else %}
@@ -36,47 +35,27 @@
                 </div>
                 {% endif %}
                 {% endfor %}
-                {% for answer_form in answers_forms %}
-                    {% for answer in answer_form %}
-                        {% if answer.instance.question_id == form.instance.id %}
-                            {% if answer_form.forms %}
-                                {{ answer_form.management_form }}
-                                {% for ff in answer %}
-                                    {% if ff.label != "Delete" and ff.label != "Test" and ff.label != 'Question' %}
-                                        {{ ff.id }}
-                                        <div class="form__row">
-                                            <div class="form__field">
-                                                <label class="form-label {% if "Id" == ff.label %}phantom{% endif %}" for="{{ ff.id_for_label }}">{{ ff.label }}: </label>{{ ff }}
-                                            </div>
-                                            <div class="form-errors">{{ ff.errors }}</div>
-                                        </div>
-                                    {% endif %}
-                                {% endfor %}
-                            {% endif %}
-                        {% endif %}
-                    {% endfor %}
-                {% endfor %}
+
             {% endfor %}
-            </div>
             <div class="from-error">{{ form.non_field_errors }}</div>
             <button type="submit" class="button__submit">submit</button>
         </form>
-        {% if questions_forms.has_other_pages %}
+        {% if question_page_obj.has_other_pages %}
             <div class="pagination__profile">
-                {% if questions_forms.has_previous %}
-                    <a href="?page={{ questions_forms.previous_page_number }}" class="pagination__link link__clickable"><</a>
+                {% if question_page_obj.has_previous %}
+                    <a href="?page={{ question_page_obj.previous_page_number }}" class="pagination__link link__clickable"><</a>
                 {% else %}
                     <a class="pagination__link link__unclickable"><</a>
                 {% endif %}
-                {% for p in questions_forms.paginator.page_range %}
-                    {% if questions_forms.number == p %}
+                {% for p in question_page_obj.paginator.page_range %}
+                    {% if question_page_obj.number == p %}
                         <a href="?page={{ p }}" class="pagination__link link-selected">{{ p }}</a>
-                    {% elif p >= questions_forms.number|add:-15 and p <= questions_forms.number|add:15 %}
+                    {% elif p >= question_page_obj.number|add:-15 and p <= question_page_obj.number|add:15 %}
                         <a href="?page={{ p }}" class="pagination__link">{{ p }}</a>
                     {% endif %}
                 {% endfor %}
-                {% if questions_forms.has_next %}
-                    <a href="?page={{ questions_forms.next_page_number }}" class="pagination__link link__clickable">></a>
+                {% if question_page_obj.has_next %}
+                    <a href="?page={{ question_page_obj.next_page_number }}" class="pagination__link link__clickable">></a>
                 {% else %}
                     <a class="pagination__link link__unclickable">></a>
                 {% endif %}

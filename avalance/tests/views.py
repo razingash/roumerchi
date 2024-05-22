@@ -271,29 +271,35 @@ class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
                                                        prefix=f'answer_{test_question.id}') for test_question in
                             test_obj.testquestion_set.all()]
             #print(formsets)
-
-            #page_number = self.request.GET.get('page')
-
-            #question_paginator = Paginator(question_formset, self.paginate_by)
-            #question_page_obj = question_paginator.get_page(page_number)
+            #print(test_obj.testquestion_set.all())
+            page_number = self.request.GET.get('page')
+            question_paginator = Paginator(question_formset, self.paginate_by)
+            question_page_obj = question_paginator.get_page(page_number)
             #answers_paginator = Paginator(formsets, self.paginate_by)
             #answers_page_obj = answers_paginator.get_page(page_number)
 
-            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, answers_forms=formsets,
-                                        questions_forms=question_formset, preview_slug=self.kwargs['test_preview'])
-
+            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, preview_slug=self.kwargs['test_preview'],
+                                        answers_forms=formsets, question_page_obj=question_page_obj,
+                                        questions_forms=question_page_obj.object_list, question_management_form=question_formset.management_form)
+            #print(question_page_obj)
             return context | mix
 
     def form_valid(self, form):
         context = self.get_context_data()
-        questions_formset = context['questions_forms']
+        #questions_formset = context['question_page_obj'].paginator.object_list
         answers_formsets = context['answers_forms']
-        print(answers_formsets)
-        #page_number = self.request.GET.get('page')
+        page_number = self.request.GET.get('page')
+        #print(f'{answers_formsets}\n\n')
+        question_form = context['questions_forms'][0]
         #print(questions_formset.paginator.object_list.__dict__)
+        if context['questions_forms'][0].is_valid():
+            print(1)
+            context['questions_forms'][0].save()
+        else:
+            print(f'error: {form.errors}')
 
-        if questions_formset.is_valid():
-            questions_formset.save()
+        if question_form.is_valid():
+            question_form.save()
             for answers_formset in answers_formsets:
                 if answers_formset.is_valid():
                     print(answers_formset.queryset[0].__dict__)
@@ -302,6 +308,8 @@ class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
                     print(f'error {answers_formset.errors}')
 
             return redirect(self.get_success_url())
+        else:
+            print(f'error: {question_form.is_valid()}, {question_form.errors}')
 
         return self.render_to_response(self.get_context_data(form=form))
 
