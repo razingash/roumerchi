@@ -21,10 +21,13 @@ class TestCategories(models.IntegerChoices):
     SECOND = 2, 'second'
 
 class TestStatuses(models.IntegerChoices):
-    VISIBLE = 1, 'visible'
-    CHECKING = 2, 'awaiting verification' # link aviable, test temporarily closed
-    FREEZED = 3, 'freezed' # link aviable, test closed / author can set up this state
-    BANNED = 4, 'banned' # link aviable, test closed
+    UNDERWAY = 1, 'underway' # in progress
+    VERIFICATION = 2, 'awaiting verification'  # link unaviable, moderation forbidden
+    VISIBLE = 3, 'visible' # link and walkthrough are aviable
+    FREEZED = 4, 'freezed'  # link aviable, test closed moderation forbidden | author can set up this state
+    INVISIBLE = 5, 'invisible' # link aviable, test moderation and walkthrough 403 | this state is setted up due to huge amount of complaint
+    BANNED = 6, 'banned'  # link unaviable 404, test closed by admin
+
 
 class UserTrustFactors(models.IntegerChoices):
     FIRST = 0, 'first'
@@ -77,12 +80,12 @@ class Test(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.PROTECT)
     category = models.PositiveSmallIntegerField(choices=TestCategories.choices, blank=False, null=False)
     status = models.PositiveSmallIntegerField(choices=TestStatuses.choices, blank=False, null=False,
-                                              default=TestStatuses.CHECKING)
+                                              default=TestStatuses.UNDERWAY)
     preview = models.CharField(max_length=220, blank=False, null=False, validators=[MinLengthValidator(10)])
     preview_slug = models.SlugField(blank=False, null=True, unique=True)
-    description = models.TextField(max_length=5000, blank=False, null=False, validators=[MinLengthValidator(500)])
-    questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(15),
-                                                                                           MaxValueValidator(150)]) # improve this
+    description = models.TextField(max_length=5000, blank=False, null=False, validators=[MinLengthValidator(10)])#[500, 5000]
+    questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(2),
+                                                                                           MaxValueValidator(150)]) # improve this#[15, 150]
     grade = models.SmallIntegerField(default=0, blank=False, null=False)
     reputation = models.SmallIntegerField(default=50, blank=False, null=False)
     publication_date = models.DateTimeField(auto_now=True, blank=False, null=False)
@@ -104,14 +107,14 @@ class Test(models.Model):
 class TestCriterion(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     criterion = models.CharField(max_length=25, blank=False, null=False, validators=[MinLengthValidator(3)])
-    result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(100)])
+    result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(10)])#[100, 700]
 
 
 class TestUniqueResult(models.Model): # сделать проверку для того чтобы не было несостыковок
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     points_min = models.PositiveSmallIntegerField(blank=False, null=False)
     points_max = models.PositiveSmallIntegerField(blank=False, null=False)
-    result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(100)])
+    result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(10)])#[100, 700]
 
 
 class Complaint(models.Model):

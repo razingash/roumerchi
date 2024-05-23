@@ -3,7 +3,7 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView
 from django.core.paginator import Paginator
-from django.http import JsonResponse, HttpResponseRedirect
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
@@ -11,9 +11,10 @@ from django.views.generic import DetailView, ListView, CreateView, FormView
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
     TestQuestionAnswersFormSet
-from tests.models import CustomUser, Test
+from tests.models import CustomUser, Test, TestCriterion
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
-    get_user_tests, get_user_completed_tests, validate_paginator_get_attribute
+    get_user_tests, get_user_completed_tests, validate_paginator_get_attribute, get_question_answers_formset, \
+    get_question_answer_counter
 from tests.utils import DataMixin
 
 
@@ -181,8 +182,14 @@ class CreateTest(FormView, LoginRequiredMixin, DataMixin):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, formset=CriterionFormSet(),
-                                        formset2=UniqueResultFormSet())
+            if self.request.method == 'GET':
+                criterion_formset = CriterionFormSet()
+                unique_result_formset = UniqueResultFormSet()
+            else:
+                criterion_formset = CriterionFormSet(self.request.POST)
+                unique_result_formset = UniqueResultFormSet(self.request.POST)
+            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, formset=criterion_formset,
+                                        formset2=unique_result_formset)
             return context | mix
 
     def form_valid(self, form):
@@ -198,6 +205,55 @@ class CreateTest(FormView, LoginRequiredMixin, DataMixin):
             for formset in unique_result_fromsets:
                 formset.save()
             return super().form_valid(form)
+
+    def get_success_url(self):
+        user_uuid = self.request.user.uuid
+        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+
+
+class CreateTestQuestions(FormView, LoginRequiredMixin, DataMixin):
+    template_name = 'tests/create_test_questions.html'
+    form_class = TestQuestionFormSet
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            answers_formset = get_question_answers_formset(self.request.user.id)
+
+            if self.request.method == 'GET':
+                question_formset = TestQuestionFormSet()
+                answer_formset = answers_formset()
+            else:
+                question_formset = TestQuestionFormSet(self.request.POST)
+                answer_formset = answers_formset(self.request.POST)
+            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, formset=question_formset,
+                                        formset2=answer_formset)
+            return context | mix
+
+    def form_valid(self, form):
+        context = self.get_context_data()
+
+        question_formset = context['formset']
+        answer_formset = context['formset2']
+        test_instance = Test.objects.get(author_id=self.request.user.id, status=1)
+        criterions = TestCriterion.objects.filter(test=test_instance)
+        question_formset.instance = test_instance
+
+        if question_formset.is_valid() and answer_formset.is_valid():
+            for question_form in question_formset:
+                question = question_form.save(commit=False)
+                question.save()
+                for i, answer_form in enumerate(answer_formset):
+                    if answer_form.has_changed():
+                        answer = answer_form.save(commit=False)
+                        answer.question = question
+                        answer.criterion = criterions[i]
+                        answer.save()
+            return redirect(self.get_success_url())
+        else:
+            print(question_formset.errors)
+            print(answer_formset.errors)
+        return self.render_to_response(self.get_context_data(form=question_formset, formset2=answer_formset))
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid

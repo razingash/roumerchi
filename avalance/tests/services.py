@@ -1,7 +1,8 @@
 from django.db import transaction
-
+from django import forms
+from tests.forms import TestQuestionAnswersForm
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
-    TestCriterion
+    TestCriterion, QuestionAnswerChoice
 
 
 class CustomException(Exception):
@@ -30,7 +31,7 @@ def get_profile_info(profile_uuid):
 def get_test_info_by_slug(test_slug):
     queryset = Test.objects.prefetch_related('testcriterion_set', 'testquestion_set', 'testquestion_set__question',
                                              'testquestion_set__questionanswerchoice_set')
-    queryset = queryset.filter(preview_slug=test_slug).select_related()
+    queryset = queryset.filter(preview_slug=test_slug)
     return queryset
 
 
@@ -43,6 +44,21 @@ def get_user_completed_tests(user_id):
 
 def get_user_uncompleted_tests():
     pass
+
+
+def get_question_answers_formset(user_id):
+    answers_amount = Test.objects.prefetch_related('testcriterion_set').filter(author_id=user_id, status=1)
+    answers_amount = answers_amount.last().testcriterion_set.count()
+    formset = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0,
+                                          min_num=answers_amount, max_num=answers_amount)
+    return formset
+
+def get_question_answer_counter(user_id):
+    question_id = []
+    for question in Test.objects.prefetch_related('testquestion_set').filter(author_id=user_id, status=1).last().testquestion_set.all():
+        question_id.append(question.id)
+    count = QuestionAnswerChoice.objects.filter(question__in=question_id).count()
+    return count
 
 
 def calculate_test_result(test_id, answers): # добавить проверку на неравенство списков вопросов
@@ -95,6 +111,7 @@ def create_new_test_respondent(sender_id, test_id, answers):
         else: # for guests
             pass
     raise CustomException('something went wrong')
+
 
 @custom_exception(expected_return=0)
 def validate_paginator_get_attribute(page_number):

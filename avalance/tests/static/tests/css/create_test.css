@@ -28,6 +28,13 @@
     font-weight: 900;
 }
 
+.nulifying {
+    padding: 5px 0 0 0;
+    font-family: initial;
+    font-size: initial;
+    font-weight: initial;
+}
+
 .identification__item {
     color: #fff;
     padding: 0 4px 0 4px;
@@ -90,7 +97,6 @@
     background: #5757ff;
     padding: 5px 15px 5px 15px;
     position: relative;
-    min-height: 1.5em;
 }
 
 .info{
