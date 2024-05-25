@@ -2,23 +2,14 @@
 .profile {
     display: flex;
     flex-direction: column;
-    padding: 20px;
-    background: #34393d;
-    border-radius: 12px;
+    padding: 15px 0 15px 20px;
+    position: relative;
+    background: var(--containers-background);
+    box-shadow: inset 0 0 10px rgb(0 0 0 / 50%);
 }
 
 .profile__intro {
     display: flex;
-}
-
-.field__avatar {
-    height: 8vw;
-    width: 8vw;
-    background: palegoldenrod;
-}
-
-.avatar {
-
 }
 
 .field__description {
@@ -26,30 +17,27 @@
     flex-direction: column;
     flex-grow: 1;
     justify-content: flex-start;
-    padding: 15px 0 0 16px;
 }
 
 .username {
-
+    margin-right: 28px;
 }
 
 .description {
     margin: 15px 0 0 15px;
 }
 
-.profile__functions {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 8px;
+.profile__settings {
+    position: absolute;
+    top: 4px;
+    right: 5px;
+}
+.svg__gear {
+    width: 23px;
+    height: 23px;
 }
 
-.profile__settings, .create__test {
-    color: #ff9400;
-    border: 1px solid;
-    border-radius: 5px;
-    padding: 2px 7px 2px 6px;
-    background: #000;
-}
+
 
 .profile__bar {
     margin-top: 15px;
@@ -97,7 +85,7 @@
     position: absolute;
     width: 5px;
     height: 5px;
-    bottom: 0px;
+    bottom: 0;
     right: -6px;
     border-bottom: 1.5px solid #f8ee54;
     border-right: 1.5px solid #f8ee54;
@@ -144,34 +132,9 @@
 .partition__big {
     height: 1px;
     width: 90%;
-    background: #ececec;
+    background: #000000;
 }
-
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-}
-
-.pagination > a {
-    padding: 1px 8px 0 8px;
-    border: 1px solid #000;
-    border-radius: 10px;
-    margin: 0 4px 0 4px;
-    font-family: sans-serif;
-}
-
-.pagination__clickable {
-    color: #0074ff;
-}
-
-.pagination__unclickable {
-   color: #ff0047;
-}
-
-.pagination__current {
-    color: #14ff00;
-    border-color: #54f8f6;
+.partition__wide{
+    height: 2px;
 }
 

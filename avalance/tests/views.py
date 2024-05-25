@@ -1,7 +1,7 @@
 
 from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView
+from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
@@ -10,11 +10,11 @@ from django.views.generic import DetailView, ListView, CreateView, FormView
 
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
-    TestQuestionAnswersFormSet
+    TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm
 from tests.models import CustomUser, Test, TestCriterion
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
     get_user_tests, get_user_completed_tests, validate_paginator_get_attribute, get_question_answers_formset, \
-    get_question_answer_counter
+    get_question_answer_counter, get_test_categories, get_user_created_tests, get_filtered_tests
 from tests.utils import DataMixin
 
 
@@ -41,109 +41,128 @@ class LoginPageView(LoginView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        mix = self.get_user_context(title='Login')
+        if self.request.user.is_authenticated:
+            mix = self.get_user_context(title='Login', user_uuid=self.request.user.uuid)
+        else:
+            mix = self.get_user_context(title='Login')
         return context | mix
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
 
-class ProfileView(DetailView, DataMixin):
-    model = CustomUser
-    template_name = 'tests/profile_user_tests.html'
-    context_object_name = 'user'
-    paginate_by = 100
+
+class SettingsBasePage(LoginRequiredMixin, DataMixin, FormView):
+    template_name = 'tests/settings.html'
+    form_class = ChangeCustomUserForm
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-
         if self.request.user.is_authenticated:
-            tests = get_user_tests(user_id=self.request.user.id)
+            mix = self.get_user_context(title='settings', user_uuid=self.request.user.uuid)
+            context.update(mix)
+            return context | mix
 
-            paginator = Paginator(tests, self.paginate_by)
-            page_number = self.request.GET.get('page')
-            page_obj = paginator.get_page(page_number)
+    def form_valid(self, form):
+        print('form valid')
+        form.save()
+        return super().form_valid(form)
 
-            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, tests=page_obj)
-        else:
-            mix = self.get_user_context(title='Profile')
-        return context | mix
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['instance'] = self.request.user
+        return kwargs
+
+    def get_success_url(self):
+        user_uuid = self.request.user.uuid
+        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+
+
+class SettingsPasswordPage(LoginRequiredMixin, PasswordChangeView, DataMixin):
+    template_name = 'tests/password_reset.html'
+    form_class = ChangeCustomUserPasswordForm
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            mix = self.get_user_context(title='password updating', user_uuid=self.request.user.uuid)
+            return context | mix
 
     def get_object(self, queryset=None):
-        profile_uuid = self.kwargs.get('profile_uuid')
-        queryset = get_profile_info(profile_uuid=profile_uuid)
-        return get_object_or_404(queryset)
+        return self.request.user
+
+    def get_success_url(self):
+        user_uuid = self.request.user.uuid
+        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
 
 
-class ProfileCTestsView(DetailView, LoginRequiredMixin, DataMixin):
+
+class ProfileView(DetailView, DataMixin):
     model = CustomUser
-    template_name = 'tests/profile_completed_tests.html'
+    template_name = 'tests/profile.html'
     context_object_name = 'user'
     paginate_by = 10
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
+        tests = get_user_created_tests(self.kwargs.get('profile_uuid'))
+
+        paginator = Paginator(tests, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        categories = get_test_categories()
+
         if self.request.user.is_authenticated:
-            if self.request.user.uuid == self.kwargs.get('profile_uuid'):
-                tests = get_user_completed_tests(self.request.user.id)
+            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, tests=page_obj,
+                                        categories=categories)
+        else:
+            mix = self.get_user_context(title='Profile', categories=categories)
+        return context | mix
 
-                paginator = Paginator(tests, self.paginate_by)
-                page_number = self.request.GET.get('page')
-                page_obj = paginator.get_page(page_number)
+    def get_object(self, queryset=None):
+        profile_uuid = self.kwargs.get('profile_uuid')
+        queryset = get_profile_info(profile_uuid=profile_uuid)
+        return get_object_or_404(queryset)
 
-                mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, tests=page_obj)
+    def post(self, request, *args, **kwargs): # начать пробовать поиск из search_test потому что тут DetailView а не List
+        print(request.POST)
+        if request.POST.get('request_type') == 'advanced_search':
+            criterion = request.POST.get('criterion_type')
+            sorting = request.POST.get('sorting_type')
+            category = request.POST.get('category_type')
+            if self.request.user.is_authenticated:
+                user_uuid = self.request.user.uuid
+                get_filtered_tests(criterion=criterion, sorting=sorting, category=category, user_uuid=user_uuid)
             else:
-                raise Exception('rebuild')
+                get_filtered_tests(criterion=criterion, sorting=sorting, category=category)
+            return JsonResponse({'message': 'mistake'})
         else:
-            mix = self.get_user_context(title='Profile')
-        return context | mix
-
-    def get_object(self, queryset=None):
-        profile_uuid = self.kwargs.get('profile_uuid')
-        queryset = get_profile_info(profile_uuid=profile_uuid)
-        return get_object_or_404(queryset)
+            return JsonResponse({'message': 'mistake'})
 
 
-class ProfileUTestsView(DetailView, LoginRequiredMixin, DataMixin):
-    model = CustomUser
-    template_name = 'tests/base_profile.html'
-    context_object_name = 'user'
-
-    def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
-        print(self.kwargs.get('profile_uuid'))
-        if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid)
-        else:
-            mix = self.get_user_context(title='Profile')
-        return context | mix
-
-    def get_object(self, queryset=None):
-        profile_uuid = self.kwargs.get('profile_uuid')
-        queryset = get_profile_info(profile_uuid=profile_uuid)
-        return get_object_or_404(queryset)
-
-
-class SearchTestsView(DataMixin, ListView):
+class SearchTestsView(ListView, DataMixin):
     model = Test
     ordering = ['-id']
     template_name = 'tests/search_test.html'
     context_object_name = 'tests'
+    paginate_by = 20
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(**kwargs)
+        context = super().get_context_data(object_list=object_list, **kwargs)
+        categories = get_test_categories()
         if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='tests', user_uuid=self.request.user.uuid)
+            mix = self.get_user_context(title='tests', user_uuid=self.request.user.uuid, categories=categories)
         else:
-            mix = self.get_user_context(title='tests')
-        return context | mix
+            mix = self.get_user_context(title='tests', categories=categories)
+        combined_context = context | mix
+        return combined_context
 
     def get_queryset(self):
         queryset = super().get_queryset()
         return queryset
 
-
-class TestView(DetailView, DataMixin):
+class TestView(LoginRequiredMixin, DetailView, DataMixin):
     model = Test
     template_name = 'tests/test.html'
     context_object_name = 'test'
@@ -175,7 +194,7 @@ class TestView(DetailView, DataMixin):
         return JsonResponse({'message': 'something get wrong'})
 
 
-class CreateTest(FormView, LoginRequiredMixin, DataMixin):
+class CreateTest(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/create_test.html'
     form_class = TestForm
 
@@ -211,7 +230,7 @@ class CreateTest(FormView, LoginRequiredMixin, DataMixin):
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
 
 
-class CreateTestQuestions(FormView, LoginRequiredMixin, DataMixin):
+class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/create_test_questions.html'
     form_class = TestQuestionFormSet
 
@@ -260,7 +279,7 @@ class CreateTestQuestions(FormView, LoginRequiredMixin, DataMixin):
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
 
 
-class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin):
+class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/change_test.html'
     form_class = TestForm
 
@@ -306,7 +325,7 @@ class ChangeTestInfo(FormView, LoginRequiredMixin, DataMixin):
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
 
 
-class ChangeTestQuestions(FormView, LoginRequiredMixin, DataMixin):
+class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/change_test_questions.html'
     form_class = TestForm
     paginate_by = 1

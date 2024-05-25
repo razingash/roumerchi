@@ -5,39 +5,81 @@
 {% block additional_css %}
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/search_test.css' %}">
 {% endblock %}
-
+{% block additional_js %}
+    <script src="{% static 'tests/js/test_advanced_search.js' %}"></script>
+{% endblock %}
 {% block content %}
     <div class="section__tests">
         <div class="tests__field">
             <div class="filters__field">
-                <div class="left_side">
-                    <div class="category__cell">
-                        <div class="choose_param">category ...</div>
-                        <div class="filter_by_category">
-                            <div class="category__item">psychology</div>
+                <input id="advanced_search_button" type="checkbox">
+                <div class="test__filtration">
+                    <label for="advanced_search_button" class="test__advanced_search">advanced search</label>
+                    <div class="filtration__footer"></div>
+                </div>
+                <div class="filtration__field">
+                    <div class="field__advanced_search">
+                        <span class="bunch__hedge__top"></span>
+                        <div class="bunch__header">
+                            <div>Criterion</div>
+                            <div id="criterion__reset" class="advanced_search__reset">reset</div>
                         </div>
-                    </div>
-                    <div class="criterion__cell">
-                        <div class="choose_param">criterion ...</div>
-                        <div class="filter_by_criterion">
-                            <div class="criterion__item">all</div>
-                            <div class="criterion__item">completed</div>
-                            <div class="criterion__item">uncompleted</div>
-                            <div class="criterion__item">in progress</div>
+                        <div class="bunch__selection" id="selection__criterion">
+                            <label class="selection__item">
+                                <input type="radio" name="select_criterion" value="1">
+                                <div class="item__choice">completed</div>
+                            </label>
+                            <label class="selection__item">
+                                <input type="radio" name="select_criterion" value="2">
+                                <div class="item__choice">uncompleted</div>
+                            </label>
+                            <label class="selection__item">
+                                <input type="radio" name="select_criterion" value="3">
+                                <div class="item__choice">underway</div>
+                            </label>
+                        </div>
+                        <div class="bunch__header">
+                            <div>Sorted by</div>
+                            <div id="sorting__reset" class="advanced_search__reset">reset</div>
+                        </div>
+                        <div class="bunch__selection" id="selection__sorting">
+                            <label class="selection__item">
+                                <input type="radio" name="select_sorting" value="1">
+                                <div class="item__choice">popularity</div>
+                            </label>
+                            <label class="selection__item">
+                                <input type="radio" name="select_sorting" value="2">
+                                <div class="item__choice">newness</div>
+                            </label>
+                            <label class="selection__item">
+                                <input type="radio" name="select_sorting" value="3">
+                                <div class="item__choice">A-z</div>
+                            </label>
+                            <label class="selection__item">
+                                <input type="radio" name="select_sorting" value="4">
+                                <div class="item__choice">Z-a</div>
+                            </label>
+                        </div>
+                        <div class="bunch__header">
+                            <div>Category</div>
+                            <div id="category__reset" class="advanced_search__reset">reset</div>
+                        </div>
+                        <div class="bunch__selection" id="selection__category">
+                            {% for category in categories %}
+                            <label class="selection__item">
+                                <input type="radio" name="select_category" value="{{ category.0 }}">
+                                <div class="item__choice">{{ category.1 }}</div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        <span class="bunch__hedge_bottom"></span>
+                        <div class="advanced_search__footer">
+                            <label for="advanced_search_button" class="cancel__button">cancle</label>
+                            <div class="submit__button" id="submit__button">submin</div>
                         </div>
                     </div>
                 </div>
-                <div class="right_side">
-                    <div class="sort__cell">
-                        <div class="choose_param">sorted by ...</div>
-                        <div class="sort_by">
-                            <div class="sort__item">popularity</div>
-                            <div class="sort__item">newness</div>
-                            <div class="sort__item">A-z</div>
-                            <div class="sort__item">Z-a</div>
-                        </div>
-                    </div>
-                </div>
+                <div class="hidden__field"></div>
             </div>
             <div class="test__list">
                 {% for test in tests %}
@@ -58,6 +100,30 @@
                 </div>
                 {% endfor %}
             </div>
+            <div class="partition">
+                <div class="partition__big partition__wide"></div>
+            </div>
+            {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
+                {% else %}
+                    <a class="pagination__unclickable"><</a>
+                {% endif %}
+                {% for p in page_obj.paginator.page_range %}
+                    {% if page_obj.number == p %}
+                        <a href="?page={{ p }}" class="pagination__current">{{ p }}</a>
+                    {% elif p >= page_obj.number|add:-4 and p <= page_obj.number|add:4 %}
+                        <a href="?page={{ p }}" class="pagination__clickable">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}" class="pagination__clickable">></a>
+                {% else %}
+                    <a class="pagination__unclickable">></a>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
 {% endblock %}

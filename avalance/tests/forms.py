@@ -1,13 +1,14 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm
 from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult, QuestionAnswerChoice, TestQuestion
 
 
 class RegisterCustomUserForm(UserCreationForm):
-    username = forms.CharField(label='username', widget=forms.TextInput(attrs={'class': 'input__nickname', 'placeholder': 'input username...'}))
-    email = forms.EmailField(label='email', widget=forms.EmailInput(attrs={'class': 'input__mail', 'placeholder': 'input email...'}))
-    password1 = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'input__password', 'placeholder': 'input password...'}))
-    password2 = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'input__password', 'placeholder': 'repeat password...'}))
+    username = forms.CharField(label='username', widget=forms.TextInput(attrs={'class': 'auth-form-input input__nickname', 'placeholder': 'input username...'}))
+    email = forms.EmailField(label='email', widget=forms.EmailInput(attrs={'class': 'auth-form-input input__mail', 'placeholder': 'input email...'}))
+    password1 = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'auth-form-input input__password', 'placeholder': 'input password...'}))
+    password2 = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'auth-form-input input__password', 'placeholder': 'repeat password...'}))
 
     class Meta:
         model = CustomUser
@@ -15,14 +16,52 @@ class RegisterCustomUserForm(UserCreationForm):
 
 
 class LoginCustomUserForm(AuthenticationForm):
-    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'input__password',
+    password = forms.CharField(label='password', widget=forms.PasswordInput(attrs={'class': 'auth-form-input input__password',
                                                                                    'placeholder': 'input password...'}))
-    username = forms.CharField(label='username', widget=forms.TextInput(attrs={'class': 'input__nickname',
+    username = forms.CharField(label='username', widget=forms.TextInput(attrs={'class': 'auth-form-input input__nickname',
                                                                                'placeholder': 'input username...'}))
 
     class Meta:
         model = CustomUser
         fields = ['username', 'password']
+
+
+class ChangeCustomUserForm(forms.ModelForm):
+    class Meta:
+        model = get_user_model()
+        fields = ['username', 'description']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form_input'}),
+            'description': forms.TextInput(attrs={'class': 'form_input'})
+        }
+
+
+class ChangeCustomUserPasswordForm(SetPasswordForm):
+    old_password = forms.CharField(label='Old Password', widget=forms.PasswordInput(attrs={'class': 'form_input'}))
+    new_password1 = forms.CharField(label='New Password', widget=forms.PasswordInput(attrs={'class': 'form_input'}))
+    new_password2 = forms.CharField(label='Repeat Password', widget=forms.PasswordInput(attrs={'class': 'form_input'}))
+
+    def clean(self):
+        cleaned_data = super().clean()
+        old_password = cleaned_data.get('old_password')
+        new_password1 = cleaned_data.get('new_password1')
+        new_password2 = cleaned_data.get('new_password2')
+        if new_password1 != new_password2:
+            raise forms.ValidationError("The two password fields didn't match1.")
+        user = self.user
+        if not user.check_password(old_password):
+            raise forms.ValidationError("Your old password was entered incorrectly.")
+        return cleaned_data
+
+    class Meta:
+        model = get_user_model()
+        fields = ['old_password', 'new_password1', 'new_password2']
+        widgets = {
+            'old_password': forms.PasswordInput(attrs={'class': 'form_input'}),
+            'new_password1': forms.PasswordInput(attrs={'class': 'form_input'}),
+            'new_password2': forms.PasswordInput(attrs={'class': 'form_input'})
+        }
+
 
 
 class TestForm(forms.ModelForm):

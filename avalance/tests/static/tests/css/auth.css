@@ -12,39 +12,81 @@
 }
 
 .identification__field {
+    position: relative;
     border-radius: 6px;
     margin: 40px 0 40px 0;
     min-width: 350px;
+    max-width: 450px;
 }
 
 .identification__header {
     display: flex;
     justify-content: center;
     background: #5757ff;
-    padding: 10px 0 10px 0;
+    padding: 5px 0 5px 0;
     border-radius: 6px 6px 0 0;
     border-top: 2px solid #000;
     border-left: 2px solid #000;
     border-right: 2px solid #000;
+    /* border-bottom: 1px solid #000; */
     font-family: roboto, serif;
-    font-size: 1.5em;
+    font-size: 2em;
     font-weight: 900;
     letter-spacing: 0.5px;
     color: #fff;
 }
 
-.form__login {
+.identification__list {
+    background: var(--containers-background);
+    border-left: 2px solid #000;
+    border-right: 2px solid #000;
+    border-bottom: 2px solid #000;
+    height: 36px;
+    position: relative;
+}
+
+.identification__cold {
+    padding: 2px 14px 2px 6px;
+    border-radius: 6px 20px 0 0;
+    color: black;
+    font-family: roboto, serif;
+    font-size: 1.5em;
+    font-weight: 900;
+    position: absolute;
+    left: 10px;
+    top: 2px;
+}
+
+.identification__hot {
+    padding: 2px 6px 2px 6px;
+    margin: 2px 0 2px 0;
+    border-radius: 4px;
+    color: black;
+    border: 2px solid #00000070;
+    position: absolute;
+    right: 10px;
+    top: 3px;
+}
+
+.form__login, .form__registration {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
     justify-content: space-around;
-    min-height: 20vw;
     padding: 20px;
-    background: #ececec;
+    background: var(--containers-background);
     border-radius: 0 0 6px 6px;
     border-left: 2px solid #000;
     border-right: 2px solid #000;
     border-bottom: 2px solid #000;
+}
+.form__login {
+    min-height: 200px;
+    padding: 20px 20px 25px 20px;
+}
+
+.form__registration {
+    min-height: 240px;
 }
 
 .form__row {
@@ -58,6 +100,10 @@
     justify-content: space-between;
 }
 
+.auth-form-input {
+
+}
+
 .form-label {
 
 }
@@ -69,9 +115,19 @@
 .from-error {
 
 }
+.from-error ~ li {
+    word-wrap: break-word;
+}
 
 .button__submit {
 
+}
+
+.forgot__password {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    color: #000;
 }
 
 @media (max-width: 768px) {
@@ -83,6 +139,3 @@
         min-width: 0;
     }
 }
-
-
-

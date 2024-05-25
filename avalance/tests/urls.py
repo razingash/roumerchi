@@ -3,11 +3,11 @@ from .views import *
 
 urlpatterns = [
     path('login/', LoginPageView.as_view(), name='login'),
-    path('register/', RegistrationPageView.as_view(), name='registration'),
+    path('register/', RegistrationPageView.as_view(), name='registration'),# join login and registration?
     path('logout/', logout_user, name='logout'),
+    path('settings/', SettingsBasePage.as_view(), name='settings'),
+    path('settings/password/', SettingsPasswordPage.as_view(), name='settings_password'),
     path('profile/<uuid:profile_uuid>/', ProfileView.as_view(), name='profile'),
-    path('profile/completed-tests/<uuid:profile_uuid>/', ProfileCTestsView.as_view(), name='completed_tests'),
-    path('profile/uncompleted-tests/<uuid:profile_uuid>/', ProfileUTestsView.as_view(), name='uncompleted_tests'),
     path('search-test/', SearchTestsView.as_view(), name='search_test'),
     path('create-test/', CreateTest.as_view(), name='create_test'),
     path('create-questions/', CreateTestQuestions.as_view(), name='create_test_questions'),

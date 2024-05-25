@@ -51,7 +51,7 @@
     flex-direction: column;
     justify-content: space-around;
     min-height: 20vw;
-    background: #ececec;
+    background: var(--containers-background);
     border-radius: 0 0 6px 6px;
     border-left: 2px solid #000;
     border-right: 2px solid #000;

@@ -5,7 +5,6 @@ from django.core.validators import FileExtensionValidator, MinLengthValidator, M
 from django.db import models
 
 from uuid import uuid4
-import re
 
 from django.db.models import UniqueConstraint
 from django.urls import reverse
@@ -33,32 +32,10 @@ class UserTrustFactors(models.IntegerChoices):
     FIRST = 0, 'first'
     SECOND = 2, 'second'
 
-def user_avatar_upload(instance, filename):
-    filename = 'avatar' + re.search(r'\.(.*)', filename)[0]
-    return f'user/{instance.pk}/avatar/{filename}'
-
-def validate_file_size(value):
-    max_size = 2 * 512 * 512
-    if value.size > max_size:
-        raise ValidationError(f'Maximum file size mustn\'t exceed {max_size} bytes.')
-
-def validate_image_size(image):
-    required_width = 512
-    required_height = 512
-    img = Image.open(image)
-    (width, height) = img.size
-    if width > required_width or height > required_height:
-        raise ValidationError(f'Image mustn\'t be more {required_width}x{required_height} pixels.')
-    if width != height:
-        raise ValidationError('Image must be square')
-
 
 class CustomUser(AbstractUser):
     uuid = models.UUIDField(primary_key=False, default=uuid4, editable=False, unique=True)
     description = models.CharField(max_length=180, blank=True, null=True)
-    avatar = models.ImageField(upload_to=user_avatar_upload, null=True, blank=True,
-                               validators=[validate_file_size, validate_image_size,
-                                           FileExtensionValidator(['jpg', 'jpeg', 'png'])])
     trust_factor = models.PositiveSmallIntegerField(choices=UserTrustFactors.choices, blank=False, null=False,
                                                     default=UserTrustFactors.FIRST)
 

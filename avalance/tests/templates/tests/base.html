@@ -21,30 +21,44 @@
     </symbol>
     <symbol id="icon_test_completed" viewBox="0 0 20 20">
         <circle cx="10" cy="10" r="8" fill="#000"></circle>
-        <path d="M7 10 l2 2 l5 -5" stroke="#4f0" stroke-width="2" fill="none" />
+        <path d="M7 10 l2 2 l5 -5" stroke="#4f0" stroke-width="2" fill="none"></path>
     </symbol>
     <symbol id="icon_user" viewBox="0 0 200 200" >
         <g transform="matrix(1.0078 0 0 1.0078 -67.214 19.407)">
             <g transform="rotate(-44.747 67.792 141.16)">
-                <rect transform="rotate(44.747)" x="146.42" y="-107.89" width="200" height="200" fill="#211e1e"/><circle transform="rotate(44.747)" cx="245.65" cy="-47.739" r="29.979" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/><g transform="matrix(.74724 1.0974e-8 -1.0974e-8 .74724 -145.82 -59.571)"/><path d="m40.681 167.84c37.868-30.716 95.332-29.301 131.84 7.0474 35.809 36.06 39.371 92.629 8.0728 131.64z" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/>
+                <rect transform="rotate(44.747)" x="146.42" y="-107.89" width="200" height="200" fill="#211e1e"></rect><circle transform="rotate(44.747)" cx="245.65" cy="-47.739" r="29.979" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/><g transform="matrix(.74724 1.0974e-8 -1.0974e-8 .74724 -145.82 -59.571)"/><path d="m40.681 167.84c37.868-30.716 95.332-29.301 131.84 7.0474 35.809 36.06 39.371 92.629 8.0728 131.64z" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/>
             </g>
         </g>
     </symbol>
 </svg>
-    <div class="header__menu">
-        {% if request.user.is_authenticated %}
-        <a href="{% url 'logout' %}" class="header__sitename">Roumerchi</a>
-        <a href="#" class="header__item">Upcoming</a>
+    <div class="header__section">
+        <div class="header__menu">
+            <input id="menu__toggle" type="checkbox">
+            <label for="menu__toggle" class="menu__button">
+                <span class="menu__bar"></span>
+                <span class="menu__bar"></span>
+                <span class="menu__bar"></span>
+            </label>
+            <div class="header__dropdown">
+                {% if request.user.is_authenticated %}
+                <a href="{% url 'profile' user_uuid %}" class="header__dropdown__item">Profile</a>
+                <a href="{% url 'search_test' %}" class="header__dropdown__item">Tests</a>
+                <a href="{% url 'logout' %}" class="header__dropdown__item">log out</a>
+                {% else %}
+                <a href="{% url 'search_test' %}" class="header__dropdown__item">Tests</a>
+                <a href="{% url 'login' %}" class="header__dropdown__item">log in</a>
+                {% endif %}
+            </div>
+        </div>
+        <a href="#" class="header__sitename">Roumerchi</a>
         <a href="{% url 'search_test' %}" class="header__item">Tests</a>
+        {% if request.user.is_authenticated %}
         <a href="{% url 'profile' user_uuid %}" class="header__user_cover">
             <svg class="svg__user">
                 <use xlink:href="#icon_user"></use>
             </svg>
         </a>
         {% else %}
-        <a href="{% url 'registration' %}" class="header__sitename">Roumerchi</a>
-        <a href="#" class="header__item">Upcoming</a>
-        <a href="{% url 'search_test' %}" class="header__item">Tests</a>
         <a href="{% url 'login' %}" class="header__user_cover">
             <svg class="svg__user">
                 <use xlink:href="#icon_user"></use>

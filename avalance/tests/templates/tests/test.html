@@ -8,7 +8,7 @@
 {% block additional_js %}
     <meta name="test-id" content="{{ test.id }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{% static 'tests/js/test.js' %}"></script>
+    <script src="{% static 'tests/js/test_walkthrough.js' %}"></script>
 {% endblock %}
 
 {% block content %}
@@ -28,7 +28,7 @@
     <div class="test__field" id="test__walkthrough">
         <div class="quetion__field">
             {% for question in test.testquestion_set.all %}
-                <div class="test__question">{{ question.question.question }}</div>
+                <div class="test__question">{{ question.question }}</div>
                 <div class="quetions__list" id="question_{{ forloop.counter }}">
                     {% for answer in question.questionanswerchoice_set.all %}
                         <label class="quetion__item">

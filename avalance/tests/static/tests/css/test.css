@@ -134,11 +134,11 @@
     right: 0;
     padding: 12px 24px 12px 24px;
     border-radius: 0 10px 0 10px;
-    border-bottom: 1px solid #ececec;
-    border-left: 1px solid #ececec;
+    border-bottom: 1px solid var(--containers-background);
+    border-left: 1px solid var(--containers-background);
     font-family: sans-serif;
     font-weight: 900;
-    background: #ececec;
+    background: var(--containers-background);
 }
 
 .test__questions__amount {
