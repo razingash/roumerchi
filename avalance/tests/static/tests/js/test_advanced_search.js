@@ -6,11 +6,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const SortingReset = document.getElementById('sorting__reset');
     const SortingRadios = document.querySelectorAll('input[name="select_sorting"]');
 
-    const currentUrl = window.location.href
+    const currentUrl = new URL(window.location.href);
     const csrfToken = $('meta[name=csrf-token]').attr('content');
     let criterion_type = null;
     let sorting_type = null;
-    let caregory_type = null;
+    let category_type = null;
 
     $('input[name="select_criterion"]').change(function() {
         criterion_type = $('input[name="select_criterion"]:checked').val();
@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
         sorting_type = $('input[name="select_sorting"]:checked').val();
     });
     $('input[name="select_category"]').change(function() {
-        caregory_type = $('input[name="select_category"]:checked').val();
+        category_type = $('input[name="select_category"]:checked').val();
     });
 
     CriterionReset.addEventListener('click', function (){
@@ -32,15 +32,24 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     CategoryReset.addEventListener('click', function () {
         CategoryRadios.forEach(radio => radio.checked = false);
-        caregory_type = null;
+        category_type = null;
     });
 
     $('#submit__button').on('click', function () {
-        if (criterion_type == null && sorting_type == null && caregory_type == null){
-            console.log('clown')
-            console.log(criterion_type, sorting_type, caregory_type)
+        const params = new URLSearchParams();
+
+        if (criterion_type !== null) {
+            params.append('criterion_type', criterion_type);
         }
-        else {
+        if (sorting_type !== null) {
+            params.append('sorting_type', sorting_type);
+        }
+        if (category_type !== null) {
+            params.append('category_type', category_type);
+        }
+
+        if (params.toString()) {
+            window.location.href = `${currentUrl.origin}${currentUrl.pathname}?${params.toString()}`;
             $.ajax({
                 type: "POST",
                 headers: {
@@ -51,11 +60,10 @@ document.addEventListener('DOMContentLoaded', function () {
                     'request_type': 'advanced_search',
                     'criterion_type': criterion_type,
                     'sorting_type': sorting_type,
-                    'category_type': caregory_type
+                    'category_type': category_type,
                 },
                 success: function (response) {
                     console.log('success')
-                    /*location.reload();*/
                 },
                 error: function (xhr, status, error) {
                     console.error('Error during sending POST request:', error);

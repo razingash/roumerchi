@@ -11,7 +11,7 @@ from django.views.generic import DetailView, ListView, CreateView, FormView
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
     TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm
-from tests.models import CustomUser, Test, TestCriterion
+from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
     get_user_tests, get_user_completed_tests, validate_paginator_get_attribute, get_question_answers_formset, \
     get_question_answer_counter, get_test_categories, get_user_created_tests, get_filtered_tests
@@ -111,13 +111,15 @@ class ProfileView(DetailView, DataMixin):
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
+        criterions = CriterionFilters.choices
+        sortings = SortingFilters.choices
         categories = get_test_categories()
 
         if self.request.user.is_authenticated:
             mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, tests=page_obj,
-                                        categories=categories)
+                                        categories=categories, sortings=sortings, criterions=criterions)
         else:
-            mix = self.get_user_context(title='Profile', categories=categories)
+            mix = self.get_user_context(title='Profile', categories=categories, sortings=sortings, criterions=criterions)
         return context | mix
 
     def get_object(self, queryset=None):
@@ -126,17 +128,8 @@ class ProfileView(DetailView, DataMixin):
         return get_object_or_404(queryset)
 
     def post(self, request, *args, **kwargs): # начать пробовать поиск из search_test потому что тут DetailView а не List
-        print(request.POST)
         if request.POST.get('request_type') == 'advanced_search':
-            criterion = request.POST.get('criterion_type')
-            sorting = request.POST.get('sorting_type')
-            category = request.POST.get('category_type')
-            if self.request.user.is_authenticated:
-                user_uuid = self.request.user.uuid
-                get_filtered_tests(criterion=criterion, sorting=sorting, category=category, user_uuid=user_uuid)
-            else:
-                get_filtered_tests(criterion=criterion, sorting=sorting, category=category)
-            return JsonResponse({'message': 'mistake'})
+            return JsonResponse({'message': 'all good'})
         else:
             return JsonResponse({'message': 'mistake'})
 
@@ -149,18 +142,39 @@ class SearchTestsView(ListView, DataMixin):
     paginate_by = 20
 
     def get_context_data(self, *, object_list=None, **kwargs):
-        context = super().get_context_data(object_list=object_list, **kwargs)
+        context = super().get_context_data(**kwargs)
         categories = get_test_categories()
+        criterions = CriterionFilters.choices
+        sortings = SortingFilters.choices
         if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='tests', user_uuid=self.request.user.uuid, categories=categories)
+            mix = self.get_user_context(title='tests', user_uuid=self.request.user.uuid, categories=categories,
+                                        sortings=sortings, criterions=criterions)
         else:
-            mix = self.get_user_context(title='tests', categories=categories)
+            mix = self.get_user_context(title='tests', categories=categories, sortings=sortings, criterions=criterions)
         combined_context = context | mix
         return combined_context
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        print('GET QUER2Y')
+        print(self.request.GET.get('info_1'), self.request.GET.get('info_2'), self.request.GET.get('info_3'))
+        criterion = self.request.GET.get('criterion_type')
+        sorting = self.request.GET.get('sorting_type')
+        category = self.request.GET.get('category_type')
+
+        if self.request.user.is_authenticated:
+            user_uuid = self.request.user.uuid
+            queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, user_uuid=user_uuid)
+        else:
+            #queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category)
+            queryset = Test.objects.all()
+        print(f'queryset: {queryset}')
         return queryset
+
+    def post(self, request, *args, **kwargs):
+        if request.POST.get('request_type') == 'advanced_search':
+            return JsonResponse({'message': 'all good'})
+        else:
+            return JsonResponse({'message': 'mistake'})
 
 class TestView(LoginRequiredMixin, DetailView, DataMixin):
     model = Test

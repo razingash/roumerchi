@@ -1,6 +1,7 @@
 {% extends 'tests/base.html' %}
 
 {% load static %}
+{% load tests_tags %}
 
 {% block additional_css %}
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/search_test.css' %}">
@@ -25,40 +26,24 @@
                             <div id="criterion__reset" class="advanced_search__reset">reset</div>
                         </div>
                         <div class="bunch__selection" id="selection__criterion">
+                            {% for criterion in criterions %}
                             <label class="selection__item">
-                                <input type="radio" name="select_criterion" value="1">
-                                <div class="item__choice">completed</div>
+                                <input type="radio" name="select_criterion" value="{{ criterion.0 }}">
+                                <div class="item__choice">{{ criterion.1 }}</div>
                             </label>
-                            <label class="selection__item">
-                                <input type="radio" name="select_criterion" value="2">
-                                <div class="item__choice">uncompleted</div>
-                            </label>
-                            <label class="selection__item">
-                                <input type="radio" name="select_criterion" value="3">
-                                <div class="item__choice">underway</div>
-                            </label>
+                            {% endfor %}
                         </div>
                         <div class="bunch__header">
                             <div>Sorted by</div>
                             <div id="sorting__reset" class="advanced_search__reset">reset</div>
                         </div>
                         <div class="bunch__selection" id="selection__sorting">
+                            {% for sorting in sortings %}
                             <label class="selection__item">
-                                <input type="radio" name="select_sorting" value="1">
-                                <div class="item__choice">popularity</div>
+                                <input type="radio" name="select_sorting" value="{{ sorting.0 }}">
+                                <div class="item__choice">{{ sorting.1 }}</div>
                             </label>
-                            <label class="selection__item">
-                                <input type="radio" name="select_sorting" value="2">
-                                <div class="item__choice">newness</div>
-                            </label>
-                            <label class="selection__item">
-                                <input type="radio" name="select_sorting" value="3">
-                                <div class="item__choice">A-z</div>
-                            </label>
-                            <label class="selection__item">
-                                <input type="radio" name="select_sorting" value="4">
-                                <div class="item__choice">Z-a</div>
-                            </label>
+                            {% endfor %}
                         </div>
                         <div class="bunch__header">
                             <div>Category</div>
@@ -89,12 +74,14 @@
                         <div class="item__preview">{{ test.preview }}</div>
                         <div class="item__reputation">{{ test.grade }}</div>
                         <div class="item__status">
+                            {% if test.is_underway %}
                             <svg class="svg__test_status">
                                 <use xlink:href="#icon_test_in_progress"></use>
-                            </svg>
+                            </svg>{% endif %}
+                            {% if test.is_completed %}
                             <svg class="svg__test_status">
                                 <use xlink:href="#icon_test_completed"></use>
-                            </svg>
+                            </svg>{% endif %}
                         </div>
                     </a>
                 </div>
@@ -106,19 +93,19 @@
             {% if page_obj.has_other_pages %}
             <div class="pagination">
                 {% if page_obj.has_previous %}
-                    <a href="?page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
+                    <a href="?{{ request.GET|remove_page_param|urlencode }}&page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
                 {% else %}
                     <a class="pagination__unclickable"><</a>
                 {% endif %}
                 {% for p in page_obj.paginator.page_range %}
                     {% if page_obj.number == p %}
-                        <a href="?page={{ p }}" class="pagination__current">{{ p }}</a>
+                        <a href=?"{{ request.GET|remove_page_param|urlencode }}&page={{ p }}" class="pagination__current">{{ p }}</a>
                     {% elif p >= page_obj.number|add:-4 and p <= page_obj.number|add:4 %}
-                        <a href="?page={{ p }}" class="pagination__clickable">{{ p }}</a>
+                        <a href="?{{ request.GET|remove_page_param|urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
                     {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
-                    <a href="?page={{ page_obj.next_page_number }}" class="pagination__clickable">></a>
+                    <a href="?{{ request.GET|remove_page_param|urlencode }}&page={{ page_obj.next_page_number }}" class="pagination__clickable">></a>
                 {% else %}
                     <a class="pagination__unclickable">></a>
                 {% endif %}

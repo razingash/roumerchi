@@ -16,8 +16,11 @@ class TestComplaints(models.IntegerChoices):
     SECOND = 2, 'second'
 
 class TestCategories(models.IntegerChoices):
-    FIRST = 1, 'first'
-    SECOND = 2, 'second'
+    INTELLIGENCE = 1, 'intelligence' # bulp
+    PSYCHOLOGY = 2, 'psychology' #
+    PROFESSIONAL = 3, 'professional' # briefcase
+    ENTERTAINMENT = 4, 'entertainment' #
+    EMOTIONAL = 5, 'emotional' # heart
 
 class TestStatuses(models.IntegerChoices):
     UNDERWAY = 1, 'underway' # in progress
@@ -26,6 +29,17 @@ class TestStatuses(models.IntegerChoices):
     FREEZED = 4, 'freezed'  # link aviable, test closed moderation forbidden | author can set up this state
     INVISIBLE = 5, 'invisible' # link aviable, test moderation and walkthrough 403 | this state is setted up due to huge amount of complaint
     BANNED = 6, 'banned'  # link unaviable 404, test closed by admin
+
+class CriterionFilters(models.IntegerChoices):
+    COMPLETED = 1, 'completed'
+    UNCOMPLETED = 2, 'uncompleted'
+    UNDERWAY = 3, 'underway'
+
+class SortingFilters(models.IntegerChoices):
+    POPULARITY = 1, 'popularity'
+    NEWNESS = 2, 'newness'
+    AZ = 3, 'A-z'
+    ZA = 4, 'Z-a'
 
 
 class UserTrustFactors(models.IntegerChoices):
@@ -127,7 +141,7 @@ class QuestionAnswerChoice(models.Model):
     weight = models.PositiveSmallIntegerField(blank=False, null=False)
 
 
-class Respondent(models.Model):
+class Respondent(models.Model): # later add a field is_completed: if false then its underway
     user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
 

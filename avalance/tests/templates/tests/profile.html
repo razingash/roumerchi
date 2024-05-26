@@ -40,40 +40,24 @@
                         <div id="criterion__reset" class="advanced_search__reset">reset</div>
                     </div>
                     <div class="bunch__selection" id="selection__criterion">
+                        {% for criterion in criterions %}
                         <label class="selection__item">
-                            <input type="radio" name="select_criterion" value="1">
-                            <div class="item__choice">completed</div>
+                            <input type="radio" name="select_criterion" value="{{ criterion.0 }}">
+                            <div class="item__choice">{{ criterion.1 }}</div>
                         </label>
-                        <label class="selection__item">
-                            <input type="radio" name="select_criterion" value="2">
-                            <div class="item__choice">uncompleted</div>
-                        </label>
-                        <label class="selection__item">
-                            <input type="radio" name="select_criterion" value="3">
-                            <div class="item__choice">underway</div>
-                        </label>
+                        {% endfor %}
                     </div>
                     <div class="bunch__header">
                         <div>Sorted by</div>
                         <div id="sorting__reset" class="advanced_search__reset">reset</div>
                     </div>
                     <div class="bunch__selection" id="selection__sorting">
+                        {% for sorting in sortings %}
                         <label class="selection__item">
-                            <input type="radio" name="select_sorting" value="1">
-                            <div class="item__choice">popularity</div>
+                            <input type="radio" name="select_sorting" value="{{ sorting.0 }}">
+                            <div class="item__choice">{{ sorting.1 }}</div>
                         </label>
-                        <label class="selection__item">
-                            <input type="radio" name="select_sorting" value="2">
-                            <div class="item__choice">newness</div>
-                        </label>
-                        <label class="selection__item">
-                            <input type="radio" name="select_sorting" value="3">
-                            <div class="item__choice">A-z</div>
-                        </label>
-                        <label class="selection__item">
-                            <input type="radio" name="select_sorting" value="4">
-                            <div class="item__choice">Z-a</div>
-                        </label>
+                        {% endfor %}
                     </div>
                     <div class="bunch__header">
                         <div>Category</div>
