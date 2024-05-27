@@ -98,7 +98,7 @@
                 {% endif %}
                 {% for p in page_obj.paginator.page_range %}
                     {% if page_obj.number == p %}
-                        <a href=?"{{ modified_get.urlencode }}&page={{ p }}" class="pagination__current">{{ p }}</a>
+                        <a class="pagination__current">{{ p }}</a>
                     {% elif p >= page_obj.number|add:-4 and p <= page_obj.number|add:4 %}
                         <a href="?{{ modified_get.urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
                     {% endif %}

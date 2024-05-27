@@ -33,6 +33,7 @@ def to_int(value):
     else:
         return value
 
+
 def get_test_categories():
     return TestCategories.choices
 
@@ -57,9 +58,11 @@ def get_user_completed_tests(profile_uuid):
     tests = Respondent.objects.select_related('test').order_by('-id').filter(user_id=user_id)
     return tests
 
-def get_user_created_tests(profile_uuid):
+def get_user_created_tests(criterion, sorting, category, profile_uuid):
     user_id = CustomUser.objects.only('id').get(uuid=profile_uuid).id
-    tests = Test.objects.order_by('-id').filter(author_id=user_id)
+    tests = get_filtered_tests_for_logged_user(criterion=criterion, sorting=sorting, category=category,
+                                               user_uuid=profile_uuid)
+    tests = tests.filter(author_id=user_id)
     return tests
 
 
@@ -67,41 +70,46 @@ def get_user_uncompleted_tests():
     pass
 
 
-def get_filtered_tests_for_logged_user(criterion, sorting, category, user_uuid=None):
+def get_filtered_tests_for_logged_user(criterion, sorting, category, user_uuid=None, profile_uuid=None):
     user_id = get_user_id(user_uuid=user_uuid)
     is_completed = Case(When(respondent__user_id=user_id, then=True), default=False) # annotation to mark completed tests
+    filters = Q()
+    if profile_uuid is not None:
+        profile_user_id = get_user_id(user_uuid=profile_uuid)
+        filters &= Q(author_id=profile_user_id)
     if criterion is not None:  # make flat view for special cases, if the orm queries will be ?very different?
         if sorting is not None:
             if category is not None:  # criterion, sorting  and category
+                filters &= Q(category=category)
                 if sorting == 1: # popularity #
                     attempts_num = Count(Case(When(respondent__user_id=user_id, then=1), default=None))
                     if criterion == 1:  # completed
-                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).filter(filters)
                     elif criterion == 2:  # uncopleted
-                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(filters)
                     elif criterion == 3:  # underway
-                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).filter(filters)
                     else:
-                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed, attempts_num=attempts_num).filter(filters)
                     return tests.order_by('-attempts_num')
                 else:
                     if criterion == 1:  # completed
-                        tests = Test.objects.annotate(is_completed=is_completed).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
                     elif criterion == 2:  # uncopleted
-                        tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(filters)
                     elif criterion == 3:  # underway
-                        tests = Test.objects.annotate(is_completed=is_completed).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
                     else:
-                        tests = Test.objects.annotate(is_completed=is_completed).filter(category=category)
+                        tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
             else:  # criterion and sorting
                 if criterion == 1:  # completed
-                    tests = Test.objects.annotate(is_completed=is_completed)  # check this
+                    tests = Test.objects.annotate(is_completed=is_completed).filter(filters)  # check this
                 elif criterion == 2:  # uncopleted
-                    tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True))
+                    tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(filters)
                 elif criterion == 3:  # underway
-                    tests = Test.objects.annotate(is_completed=is_completed).all()
+                    tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
                 else:
-                    tests = Test.objects.annotate(is_completed=is_completed).all()
+                    tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
 
             if sorting == 3:  # A-z
                 tests = tests.order_by('preview_slug')
@@ -112,54 +120,63 @@ def get_filtered_tests_for_logged_user(criterion, sorting, category, user_uuid=N
             return tests
         elif category is not None:  # criterion and category
             if criterion == 1:  # completed
-                tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent', filter=Q(respondent__user_id=user_id))).filter(attempts_num__gt=0, category=category)
+                filters &= Q(attempts_num__gt=0, category=category)
+                tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent', filter=Q(respondent__user_id=user_id))).filter(filters)
             elif criterion == 2:  # uncopleted
-                tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(category=category)
+                filters &= Q(category=category)
+                tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(filters)
             elif criterion == 3:  # underway
-                tests = Test.objects.annotate(is_completed=is_completed).all()
+                tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
             else:
-                tests = Test.objects.annotate(is_completed=is_completed).all()
+                tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
             return tests
         else:  # only criterions
             if criterion == 1:  # completed
-                tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent', exclude=Q(respondent__user_id=user_id))).filter(attempts_num__gt=0)
+                filters &= Q(attempts_num__gt=0)
+                tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent', exclude=Q(respondent__user_id=user_id))).filter(filters)
             elif criterion == 2:  # uncopleted
-                tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True))
+                tests = Test.objects.annotate(is_completed=is_completed).exclude(id__in=Respondent.objects.filter(user_id=user_id).values_list('test_id', flat=True)).filter(filters)
             elif criterion == 3:  # underway
-                tests = Test.objects.annotate(is_completed=is_completed).all()
+                tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
             else:
-                tests = Test.objects.annotate(is_completed=is_completed).all()
+                tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
             return tests
     elif category is not None:
+        filters &= Q(category=category)
         if sorting is not None:  # category and sorting
             if sorting == 1:  # by popularity with selected category
-                tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent')).filter(category=category).order_by('-attempts_num')
+                tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent')).filter(filters).order_by('-attempts_num')
             elif sorting == 3:  # A-z with selected category
-                tests = Test.objects.annotate(is_completed=is_completed).filter(category=category).order_by('preview_slug')
+                tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('preview_slug')
             elif sorting == 4:  # Z-a with selected category
-                tests = Test.objects.annotate(is_completed=is_completed).filter(category=category).order_by('-preview_slug')
+                tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('-preview_slug')
             else:  # elif sorting == 2:  # by newness with selected category
-                tests = Test.objects.annotate(is_completed=is_completed).filter(category=category).order_by('publication_date')
+                tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('publication_date')
             return tests
         else:  # only categories
-            tests = Test.objects.annotate(is_completed=is_completed).filter(category=category)
+            tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
             return tests
     elif sorting is not None:  # only sorting
         if sorting == 1:  # popularity
-            tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent')).order_by('-attempts_num')  # checl this
+            tests = Test.objects.annotate(is_completed=is_completed, attempts_num=Count('respondent')).filter(filters).order_by('-attempts_num')  # checl this
         elif sorting == 3:  # A-z
-            tests = Test.objects.annotate(is_completed=is_completed).all().order_by('preview_slug')
+            tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('preview_slug')
         elif sorting == 4:  # Z-a
-            tests = Test.objects.annotate(is_completed=is_completed).all().order_by('-preview_slug')
+            tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('-preview_slug')
         else:  # elif sorting == 2: # newness
-            tests = Test.objects.annotate(is_completed=is_completed).all().order_by('publication_date')
+            tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('publication_date')
         return tests
 
 @custom_exception(expected_return=None)
-def get_filtered_tests(criterion, sorting, category, user_uuid=None): # add a check for emptiness and all validators here
-    if criterion is None and sorting is None and category is None:
-        user_id = get_user_id(user_uuid=user_uuid)
-        tests = Test.objects.annotate(is_completed=Case(When(respondent__user_id=user_id, then=True), default=False))
+def get_filtered_tests(criterion, sorting, category, user_uuid=None, profile_uuid=None): # add all validators here
+    if criterion is None and sorting is None and category is None and profile_uuid is None:
+        tests = Test.objects.all().order_by('-id')
+        return tests
+    elif criterion is None and sorting is None and category is None:
+        visitor_id = get_user_id(user_uuid=user_uuid)
+        profile_id = get_user_id(user_uuid=profile_uuid)
+        is_completed = Case(When(respondent__user_id=visitor_id, then=True), default=False)
+        tests = Test.objects.annotate(is_completed=is_completed).filter(author_id=profile_id).order_by('-id')
         return tests
     if criterion is not None:
         criterion = to_int(criterion)
@@ -176,11 +193,13 @@ def get_filtered_tests(criterion, sorting, category, user_uuid=None): # add a ch
         categories = [choice.value for choice in TestCategories]
         if category not in categories:
             category = None
-    print(criterion, sorting, category, user_uuid)
+    print(criterion, sorting, category, user_uuid, profile_uuid)
+    if profile_uuid is not None:
+        pass
     if user_uuid is None:
         pass
     elif CustomUser.objects.filter(uuid=user_uuid).exists():
-        return get_filtered_tests_for_logged_user(criterion=criterion, sorting=sorting, category=category, user_uuid=user_uuid)
+        return get_filtered_tests_for_logged_user(criterion=criterion, sorting=sorting, category=category, user_uuid=user_uuid, profile_uuid=profile_uuid)
     else:
         raise CustomException('something went wrong')
 

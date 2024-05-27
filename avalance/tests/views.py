@@ -105,21 +105,37 @@ class ProfileView(DetailView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        tests = get_user_created_tests(self.kwargs.get('profile_uuid'))
 
-        paginator = Paginator(tests, self.paginate_by)
-        page_number = self.request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
+        modified_get = self.request.GET.copy()
+        if 'page' in modified_get:
+            del modified_get['page']
+
+        criterion = self.request.GET.get('criterion_type')
+        sorting = self.request.GET.get('sorting_type')
+        category = self.request.GET.get('category_type')
+        profile_uuid = self.kwargs.get('profile_uuid')
 
         criterions = CriterionFilters.choices
         sortings = SortingFilters.choices
         categories = get_test_categories()
 
         if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, tests=page_obj,
-                                        categories=categories, sortings=sortings, criterions=criterions)
+            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category,
+                                       profile_uuid=profile_uuid, user_uuid=self.request.user.uuid)
         else:
-            mix = self.get_user_context(title='Profile', categories=categories, sortings=sortings, criterions=criterions)
+            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, profile_uuid=profile_uuid)
+
+        paginator = Paginator(tests, self.paginate_by)
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        if self.request.user.is_authenticated:
+            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, tests=page_obj,
+                                        categories=categories, sortings=sortings, criterions=criterions,
+                                        modified_get=modified_get)
+        else:
+            mix = self.get_user_context(title='Profile', categories=categories, sortings=sortings, criterions=criterions,
+                                        modified_get=modified_get)
         return context | mix
 
     def get_object(self, queryset=None):
@@ -161,8 +177,6 @@ class SearchTestsView(ListView, DataMixin):
         return combined_context
 
     def get_queryset(self):
-        print('GET QUER2Y')
-        print(self.request.GET.get('info_1'), self.request.GET.get('info_2'), self.request.GET.get('info_3'))
         criterion = self.request.GET.get('criterion_type')
         sorting = self.request.GET.get('sorting_type')
         category = self.request.GET.get('category_type')
@@ -173,7 +187,6 @@ class SearchTestsView(ListView, DataMixin):
         else:
             #queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category)
             queryset = Test.objects.all()
-        print(f'queryset: {queryset}')
         return queryset
 
     def post(self, request, *args, **kwargs):

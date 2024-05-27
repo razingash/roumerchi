@@ -86,12 +86,14 @@
                         <div class="item__preview">{{ test.preview }}</div>
                         <div class="item__reputation">{{ test.grade }}</div>
                         <div class="item__status">
+                            {% if test.is_underway %}
                             <svg class="svg__test_status">
                                 <use xlink:href="#icon_test_in_progress"></use>
-                            </svg>
+                            </svg>{% endif %}
+                            {% if test.is_completed %}
                             <svg class="svg__test_status">
                                 <use xlink:href="#icon_test_completed"></use>
-                            </svg>
+                            </svg>{% endif %}
                         </div>
                     </a>
                 </div>
@@ -103,19 +105,19 @@
             {% if tests.has_other_pages %}
             <div class="pagination">
                 {% if tests.has_previous %}
-                    <a href="?page={{ tests.previous_page_number }}" class="pagination__clickable"><</a>
+                    <a href="?{{ modified_get.urlencode }}&page={{ tests.previous_page_number }}" class="pagination__clickable"><</a>
                 {% else %}
                     <a class="pagination__unclickable"><</a>
                 {% endif %}
                 {% for p in tests.paginator.page_range %}
                     {% if tests.number == p %}
-                        <a href="?page={{ p }}" class="pagination__current">{{ p }}</a>
+                        <a class="pagination__current">{{ p }}</a>
                     {% elif p >= tests.number|add:-4 and p <= tests.number|add:4 %}
-                        <a href="?page={{ p }}" class="pagination__clickable">{{ p }}</a>
+                        <a href="?{{ modified_get.urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
                     {% endif %}
                 {% endfor %}
                 {% if tests.has_next %}
-                    <a href="?page={{ tests.next_page_number }}" class="pagination__clickable">></a>
+                    <a href="?{{ modified_get.urlencode }}&page={{ tests.next_page_number }}" class="pagination__clickable">></a>
                 {% else %}
                     <a class="pagination__unclickable">></a>
                 {% endif %}
