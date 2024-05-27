@@ -143,14 +143,20 @@ class SearchTestsView(ListView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        modified_get = self.request.GET.copy()
+        if 'page' in modified_get:
+            del modified_get['page']
+
         categories = get_test_categories()
         criterions = CriterionFilters.choices
         sortings = SortingFilters.choices
         if self.request.user.is_authenticated:
             mix = self.get_user_context(title='tests', user_uuid=self.request.user.uuid, categories=categories,
-                                        sortings=sortings, criterions=criterions)
+                                        sortings=sortings, criterions=criterions, modified_get=modified_get)
         else:
-            mix = self.get_user_context(title='tests', categories=categories, sortings=sortings, criterions=criterions)
+            mix = self.get_user_context(title='tests', categories=categories, sortings=sortings, criterions=criterions,
+                                        modified_get=modified_get)
         combined_context = context | mix
         return combined_context
 

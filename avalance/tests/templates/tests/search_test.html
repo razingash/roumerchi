@@ -1,7 +1,6 @@
 {% extends 'tests/base.html' %}
 
 {% load static %}
-{% load tests_tags %}
 
 {% block additional_css %}
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/search_test.css' %}">
@@ -93,19 +92,19 @@
             {% if page_obj.has_other_pages %}
             <div class="pagination">
                 {% if page_obj.has_previous %}
-                    <a href="?{{ request.GET|remove_page_param|urlencode }}&page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
+                    <a href="?{{ modified_get.urlencode }}&page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
                 {% else %}
                     <a class="pagination__unclickable"><</a>
                 {% endif %}
                 {% for p in page_obj.paginator.page_range %}
                     {% if page_obj.number == p %}
-                        <a href=?"{{ request.GET|remove_page_param|urlencode }}&page={{ p }}" class="pagination__current">{{ p }}</a>
+                        <a href=?"{{ modified_get.urlencode }}&page={{ p }}" class="pagination__current">{{ p }}</a>
                     {% elif p >= page_obj.number|add:-4 and p <= page_obj.number|add:4 %}
-                        <a href="?{{ request.GET|remove_page_param|urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
+                        <a href="?{{ modified_get.urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
                     {% endif %}
                 {% endfor %}
                 {% if page_obj.has_next %}
-                    <a href="?{{ request.GET|remove_page_param|urlencode }}&page={{ page_obj.next_page_number }}" class="pagination__clickable">></a>
+                    <a href="?{{ modified_get.urlencode }}&page={{ page_obj.next_page_number }}" class="pagination__clickable">></a>
                 {% else %}
                     <a class="pagination__unclickable">></a>
                 {% endif %}
