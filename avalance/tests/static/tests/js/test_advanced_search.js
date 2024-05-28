@@ -6,6 +6,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const SortingReset = document.getElementById('sorting__reset');
     const SortingRadios = document.querySelectorAll('input[name="select_sorting"]');
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const criterionType = urlParams.get('criterion_type');
+    const sortingType = urlParams.get('sorting_type');
+    const categoryType = urlParams.get('category_type');
+
     const currentUrl = new URL(window.location.href);
     const csrfToken = $('meta[name=csrf-token]').attr('content');
     let criterion_type = null;

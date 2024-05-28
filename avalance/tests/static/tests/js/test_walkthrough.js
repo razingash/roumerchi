@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
     const testWalkthrough = document.getElementById('test__walkthrough');
     const testDescription = document.getElementById('test__description');
+    const testEndedResult = document.getElementById('test__ended');
     const buttonStart = document.querySelector('.button__start');
     const buttonBack = document.querySelector('.back_to_description');
     const questionLists = document.querySelectorAll('.quetions__list');
@@ -9,11 +10,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const selectedAnswers = {};
     buttonStart.addEventListener('click', function () {
         testDescription.style.display = 'none';
-        testWalkthrough.style.display = 'block';
+        testWalkthrough.style.display = 'flex';
+        testEndedResult.style.display = 'none';
     });
     buttonBack.addEventListener('click', function () {
         testDescription.style.display = 'block';
         testWalkthrough.style.display = 'none';
+        testEndedResult.style.display = 'flex';
     });
 
     function onAnswerSelected(event) {
@@ -22,6 +25,12 @@ document.addEventListener('DOMContentLoaded', function () {
             selectedAnswers[questionId] = event.target.nextElementSibling.innerText;
 
             console.log(selectedAnswers);
+
+            const checkboxItems = event.target.closest('.quetions__list').querySelectorAll('.checkbox__item');
+            checkboxItems.forEach(function(item) {
+                item.classList.remove('state_1');
+            });
+            event.target.closest('.quetion__item').querySelector('.checkbox__item').classList.add('state_1');
         }
     }
 
@@ -39,6 +48,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (unansweredQuestions.length > 0) {
             console.log('Error: not all questions are marked');
+            const firstUnansweredQuestion = unansweredQuestions[0];
+            firstUnansweredQuestion.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
@@ -72,7 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 console.log('message' + response.message)
                 if (response && response.status === 200) {
                     $('#unique__result').html(response.message);
-                    $('#test__results').css('display', 'block')
+                    $('#test__results').css('display', 'flex')
                     $('#test__walkthrough').css('display', 'none')
 
                     $('[data-criterion-result-id]').each(function() {
@@ -87,8 +98,11 @@ document.addEventListener('DOMContentLoaded', function () {
                         var roundedResult = Math.round((100 * criterionResult) / answers.length);
                         $(this).css('width', roundedResult + "%")
                     });
+                    if (testEndedResult) {
+                        testEndedResult.parentNode.removeChild(testEndedResult);
+                    }
                     console.log('Success');
-                    console.log(response.criterions)
+                    console.log(response.criterions);
                 } else {
                     console.error('Error during sending POST request:', response.message);
                 }

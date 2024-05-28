@@ -1,7 +1,5 @@
-from PIL import Image
 from django.contrib.auth.models import AbstractUser
-from django.core.exceptions import ValidationError
-from django.core.validators import FileExtensionValidator, MinLengthValidator, MinValueValidator, MaxValueValidator
+from django.core.validators import MinLengthValidator, MinValueValidator, MaxValueValidator
 from django.db import models
 
 from uuid import uuid4
@@ -17,9 +15,9 @@ class TestComplaints(models.IntegerChoices):
 
 class TestCategories(models.IntegerChoices):
     INTELLIGENCE = 1, 'intelligence' # bulp
-    PSYCHOLOGY = 2, 'psychology' #
+    PSYCHOLOGY = 2, 'psychology' # mask of madness
     PROFESSIONAL = 3, 'professional' # briefcase
-    ENTERTAINMENT = 4, 'entertainment' #
+    ENTERTAINMENT = 4, 'entertainment' # roflan
     EMOTIONAL = 5, 'emotional' # heart
 
 class TestStatuses(models.IntegerChoices):
@@ -141,9 +139,10 @@ class QuestionAnswerChoice(models.Model):
     weight = models.PositiveSmallIntegerField(blank=False, null=False)
 
 
-class Respondent(models.Model): # later add a field is_completed: if false then its underway
+class Respondent(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    is_completed = models.BooleanField(default=True, blank=False, null=False) # false - underway | true - completed
 
 
 class Response(models.Model):

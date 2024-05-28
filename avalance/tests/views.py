@@ -14,7 +14,7 @@ from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, C
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
     get_user_tests, get_user_completed_tests, validate_paginator_get_attribute, get_question_answers_formset, \
-    get_question_answer_counter, get_test_categories, get_user_created_tests, get_filtered_tests
+    get_question_answer_counter, get_test_categories, get_user_created_tests, get_filtered_tests, get_test_results
 from tests.utils import DataMixin
 
 
@@ -143,7 +143,7 @@ class ProfileView(DetailView, DataMixin):
         queryset = get_profile_info(profile_uuid=profile_uuid)
         return get_object_or_404(queryset)
 
-    def post(self, request, *args, **kwargs): # начать пробовать поиск из search_test потому что тут DetailView а не List
+    def post(self, request, *args, **kwargs):
         if request.POST.get('request_type') == 'advanced_search':
             return JsonResponse({'message': 'all good'})
         else:
@@ -167,6 +167,7 @@ class SearchTestsView(ListView, DataMixin):
         categories = get_test_categories()
         criterions = CriterionFilters.choices
         sortings = SortingFilters.choices
+
         if self.request.user.is_authenticated:
             mix = self.get_user_context(title='tests', user_uuid=self.request.user.uuid, categories=categories,
                                         sortings=sortings, criterions=criterions, modified_get=modified_get)
@@ -202,8 +203,9 @@ class TestView(LoginRequiredMixin, DetailView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
+        test_results = get_test_results(test=self.object, user=self.request.user)
         if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid)
+            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, test_results=test_results)
         else:
             mix = self.get_user_context(title='Profile')
         return context | mix
@@ -213,9 +215,8 @@ class TestView(LoginRequiredMixin, DetailView, DataMixin):
         queryset = get_test_info_by_slug(test_slug=test_slug)
         return get_object_or_404(queryset)
 
-    @custom_exception
+    @custom_exception(expected_return=None)
     def post(self, request, *args, **kwargs):
-        print(request.POST)
         request_type = request.POST.get('request_type')
         sender_id = request.POST.get('sender_id')
         test_id = request.POST.get('test_id')
