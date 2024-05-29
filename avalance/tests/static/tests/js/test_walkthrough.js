@@ -34,9 +34,21 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-
     questionLists.forEach(function (list) {
         list.addEventListener('change', onAnswerSelected);
+    });
+
+    const endedCriterionBars = document.querySelectorAll('.bar__progress__ended');
+    let totalValues = 0;
+    endedCriterionBars.forEach(function (bar) {
+        totalValues += parseInt(bar.dataset.criterionPastBarValueId);
+    });
+    endedCriterionBars.forEach(function(bar) {
+        let value = parseInt(bar.dataset.criterionPastBarValueId);
+        let percentage = Math.round((value / totalValues) * 100);
+        bar.style.width = percentage + '%';
+        let criterionResult = bar.closest('.diagram__item').querySelector('.diagram__result');
+        criterionResult.innerHTML = percentage + '%';
     });
 
 

@@ -132,7 +132,7 @@
 .partition__big {
     height: 1px;
     width: 90%;
-    background: #000000;
+    background: var(--color-black);
 }
 .partition__wide{
     height: 2px;

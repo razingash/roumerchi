@@ -7,6 +7,17 @@
     <link rel="icon" type="images/x-icon" href="{% static 'tests/favicon.ico' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'tests/css/core.css' %}">
     {% block additional_css %} {% endblock additional_css %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('menu__toggle').addEventListener('change', function() {
+                if (this.checked) {
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    document.body.style.overflow = 'auto';
+                }
+            });
+        });
+    </script>
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block additional_js %} {% endblock additional_js %}
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
@@ -22,10 +33,13 @@
         <circle cx="10" cy="10" r="8" fill="#000"></circle>
         <path d="M7 10 l2 2 l5 -5" stroke="#4f0" stroke-width="2" fill="none"></path>
     </symbol>
+    <symbol id="icon_cross_rectangular" viewBox="0 0 20 20">
+        <path d="m0 18.45 1.5502 1.5502 8.4498-8.4498 8.4498 8.4498 1.5502-1.5502-8.4498-8.4498 8.4498-8.4498-1.5502-1.5502-8.4498 8.4498-8.4498-8.4498-1.5502 1.5502 8.4498 8.4498z" fill="#fff" stroke-linejoin="bevel" stroke-miterlimit="0"></path>
+    </symbol>
     <symbol id="icon_user" viewBox="0 0 200 200" >
         <g transform="matrix(1.0078 0 0 1.0078 -67.214 19.407)">
             <g transform="rotate(-44.747 67.792 141.16)">
-                <rect transform="rotate(44.747)" x="146.42" y="-107.89" width="200" height="200" fill="#211e1e"></rect><circle transform="rotate(44.747)" cx="245.65" cy="-47.739" r="29.979" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/><g transform="matrix(.74724 1.0974e-8 -1.0974e-8 .74724 -145.82 -59.571)"/><path d="m40.681 167.84c37.868-30.716 95.332-29.301 131.84 7.0474 35.809 36.06 39.371 92.629 8.0728 131.64z" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"/>
+                <rect transform="rotate(44.747)" x="146.42" y="-107.89" width="200" height="200" fill="#211e1e"></rect><circle transform="rotate(44.747)" cx="245.65" cy="-47.739" r="29.979" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"></circle><g transform="matrix(.74724 1.0974e-8 -1.0974e-8 .74724 -145.82 -59.571)"></g><path d="m40.681 167.84c37.868-30.716 95.332-29.301 131.84 7.0474 35.809 36.06 39.371 92.629 8.0728 131.64z" fill="none" stroke="#fff" stroke-linejoin="round" stroke-miterlimit="3" stroke-width="1.9845"></path>
             </g>
         </g>
     </symbol>
@@ -39,18 +53,27 @@
                 <span class="menu__bar"></span>
             </label>
             <div class="header__dropdown">
+                <div class="dropdown__field">
+                    <label for="menu__toggle" class="dropdown__closing">
+                        <svg class="svg__cross">
+                            <use xlink:href="#icon_cross_rectangular"></use>
+                        </svg>
+                    </label>
                 {% if request.user.is_authenticated %}
                 <a href="{% url 'profile' user_uuid %}" class="header__dropdown__item">Profile</a>
                 <a href="{% url 'search_test' %}" class="header__dropdown__item">Tests</a>
                 <a href="{% url 'logout' %}" class="header__dropdown__item">log out</a>
                 {% else %}
+                <div class="header__dropdown__auth">
+                    <a href="{% url 'registration' %}" class="dropdown__auth__registration">sign up</a>
+                    <a href="{% url 'login' %}" class="dropdown__auth__login">sign in</a>
+                </div>
                 <a href="{% url 'search_test' %}" class="header__dropdown__item">Tests</a>
-                <a href="{% url 'login' %}" class="header__dropdown__item">log in</a>
                 {% endif %}
+                </div>
             </div>
         </div>
-        <a href="#" class="header__sitename">Roumerchi</a>
-        <a href="{% url 'search_test' %}" class="header__item">Tests</a>
+        <a href="{% url 'search_test' %}" class="header__sitename">Roumerchi</a>
         {% if request.user.is_authenticated %}
         <a href="{% url 'profile' user_uuid %}" class="header__user_cover">
             <svg class="svg__user">

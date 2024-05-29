@@ -6,6 +6,8 @@
 :root {
     --background: #1c1c1a;
     --containers-background: #ececec;
+    --color-black: #000;
+    --color-white: #fff;
 }
 
 
@@ -33,7 +35,6 @@ a {
 
 .menu__button {
     position: relative;
-    z-index: 5;
 }
 
 .menu__bar {
@@ -48,29 +49,75 @@ a {
     display: flex;
     flex-direction: column;
     text-align: center;
-    justify-content: center;
     position: fixed;
-    background-color: black;
+    background-color: var(--color-black);
     left: -768px;
     width: 100%;
     height: 100%;
     top: 0;
-    padding: 70px 0 0 0;
-    transition: left 0.3s ease;
+    transition: 0.5s ease;
     z-index: 4;
 }
 
+.dropdown__closing {
+    background: var(--color-black);
+    display: flex;
+    justify-content: flex-end;
+    padding: 13px;
+    cursor: pointer;
+}
+
+.svg__cross {
+    width: 20px;
+    height: 20px;
+    top: 13px;
+    right: 20px;
+}
+
+.dropdown__field {
+    height: 100%;
+    background: #1f1f1f;
+}
+
 .header__dropdown__item{
-    padding: 20px;
-    text-decoration: none;
+    display: flex;
+    margin-top: 10px;
+    padding: 5px 20px 5px 45px;
     font-size: 20px;
     font-family: 'Roboto', sans-serif;
     color: white;
+    border-bottom: 2px solid #545454;
+}
+
+.header__dropdown__auth {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 2px solid #545454;
+}
+
+.dropdown__auth__registration {
+    display: flex;
+    padding: 5px 10px 5px 10px;
+    margin: 12px 0 12px 16px;
+    font-size: 20px;
+    color: white;
+    background: var(--color-black);
+    border-radius: 5px;
+}
+
+.dropdown__auth__login {
+    display: flex;
+    padding-right: 19px;
+    margin: 12px 16px 12px 0;
+    font-size: 20px;
+    color: white;
+    border-radius: 5px;
+    align-items: center;
 }
 
 .header__sitename {
     display: flex;
-    justify-content: center;
+    /* justify-content: center; */
     flex-grow: 1;
     padding: 7.5px;
     color: #5757ff;
@@ -79,6 +126,7 @@ a {
     font-weight: 900;
     letter-spacing: 0.5px;
     position: relative;
+    margin-left: 20px;
 }
 
 .header__item {
@@ -87,7 +135,7 @@ a {
     flex-grow: 1;
     justify-content: center;
     text-decoration: none;
-    color: #000;
+    color: var(--color-black);
     position: relative;
 }
 
@@ -99,8 +147,8 @@ a {
     height: 5px;
     top: 0;
     left: 0;
-    border-top: 1px solid #000;
-    border-left: 1px solid #000;
+    border-top: 1px solid var(--color-black);
+    border-left: 1px solid var(--color-black);
     transition: 0.3s ease;
 }
 .header__item::after, .header__sitename:after {
@@ -111,8 +159,8 @@ a {
     height: 5px;
     bottom: 0;
     right: 0;
-    border-bottom: 1px solid #000000;
-    border-right: 1px solid #000;
+    border-bottom: 1px solid var(--color-black);
+    border-right: 1px solid var(--color-black);
     transition: 0.3s ease;
 }
 
@@ -164,20 +212,8 @@ a {
 #menu__toggle:checked ~ .header__dropdown {
     left: 0;
 }
-#menu__toggle:checked ~ .menu__button > .menu__bar:nth-child(1){
-    background: white;
-    transition: transform 0.3s ease;
-    transform: rotate(-45deg);
-    transform-origin: right top;
-}
-#menu__toggle:checked ~ .menu__button > .menu__bar:nth-child(2){
-    opacity: 0;
-}
-#menu__toggle:checked ~ .menu__button > .menu__bar:nth-child(3){
-    background: white;
-    transition: transform 0.3s ease;
-    transform: rotate(45deg);
-    transform-origin: right bottom;
+#menu__toggle:checked ~ body {
+    overflow: hidden;
 }
 
 @media (max-width: 768px){

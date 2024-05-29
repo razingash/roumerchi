@@ -13,7 +13,32 @@
 {% endblock %}
 
 {% block content %}
-<div class="section">
+<div class="section">{% if test_results %}
+    <div class="test__field" id="test__ended">
+        <div class="quetion__field">
+            <div class="field__test">
+                <div class="test__diagram">
+                    {% for result in test.testcriterion_set.all %}
+                    <div class="diagram__item">
+                        <div class="digram__bar">{% with criterion_key=result.criterion %}
+                            <div class="bar__progress__ended" data-criterion-past-bar-value-id="{{ test_results|get_item:criterion_key }}" data-criterion-past-bar-id="{{ result.criterion }}"></div>{% endwith %}
+                        </div>
+                        <div class="diagram__info">
+                            <div class="diagram__result"></div>
+                            <div class="diagram__criterion">{{ result.criterion }}</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="result__unique" id="unique__result">{{ test_results.unique_result }}</div>
+            </div>
+            <div class="test__results">
+                {% for result in test.testcriterion_set.all %}
+                <div class="result__static">{{ result.result }}</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>{% endif %}
     <div class="test__field" id="test__description">
         <div class="test__questions">
             <div class="test__questions__amount">
@@ -73,35 +98,5 @@
             </div>
         </div>
     </div>
-    {% if test_results %}
-    <div class="test__field" id="test__ended">
-        <div class="quetion__field">
-            <div class="field__test">
-                <div class="test__diagram">
-                    {% for result in test.testcriterion_set.all %}
-                    <div class="diagram__item">
-                        <div class="digram__bar">
-                            <div class="bar__progress" data-criterion-bar-id="{{ result.criterion }}"></div>
-                        </div>
-                        <div class="diagram__info">
-                            {% with criterion_key=result.criterion %}
-                                {{ criterion_key }}
-                                {{ test_results|get_item:criterion_key }}
-                            {% endwith %}
-                            <div class="diagram__result" data-criterion-result-id="{{ result.criterion }}"></div>
-                            <div class="diagram__criterion">{{ result.criterion }}</div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                <div class="result__unique" id="unique__result">{{ test_results.unique_result }}</div>
-            </div>
-            <div class="test__results">
-                {% for result in test.testcriterion_set.all %}
-                <div class="result__static">{{ result.result }}</div>
-                {% endfor %}
-            </div>
-        </div>
-    </div>{% endif %}
 </div>
 {% endblock %}

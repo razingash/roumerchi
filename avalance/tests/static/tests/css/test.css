@@ -46,14 +46,14 @@
 }
 
 .button__start {
-    color: #fff;
+    color: var(--color-white);
     cursor: pointer;
     padding: 2px 8px 2px 8px;
     border-radius: 4px;
     margin: 0 4px 0 4px;
     font-family: sans-serif;
     font-weight: bolder;
-    background: #000;
+    background: var(--color-black);
 }
 
 
@@ -90,13 +90,13 @@
 .digram__bar {
     min-width: 70%;
     margin: 4px 6px 4px 6px;
-    background: #fff;
+    background: var(--color-white);
     border: 1px solid;
     border-radius: 8px;
     height: 10px;
 }
 
-.bar__progress {
+.bar__progress, .bar__progress__ended {
     border-radius: 8px;
     background: #0066ff;
     width: 0;
@@ -129,7 +129,7 @@
 .result__static {
     margin: 16px 0 16px 0;
     padding: 8px;
-    background: #fff;
+    background: var(--color-white);
     /*box-shadow: 0px 5px 10px 0px rgb(0 0 0 / 14%);*/
     border-radius: 6px;
     box-shadow: 0 0 0 2px rgb(0 0 0 / 50%), 0 2px 4px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.1);
@@ -141,8 +141,8 @@
     padding: 8px;
     border-radius: 6px;
     margin-bottom: 1em;
-    background: #000;
-    color: #fff;
+    background: var(--color-black);
+    color: var(--color-white);
 }
 
 .quetion__item {
@@ -164,7 +164,7 @@
     border-radius: 6px;
 }
 .state_0 {
-    background-color: #fff;
+    background-color: var(--color-white);
 }
 .state_1 {
     background-color: #1ed21e;
@@ -181,8 +181,8 @@
     border-left: 1px solid;
     font-family: sans-serif;
     font-weight: 900;
-    background: #000;
-    color: #fff;
+    background: var(--color-black);
+    color: var(--color-white);
     justify-content: center;
     align-items: center;
 }
@@ -210,14 +210,14 @@
 
 .back_to_description, .submit {
     user-select: none;
-    color: #ffffff;
+    color: var(--color-white);
     cursor: pointer;
     padding: 2px 8px 2px 8px;
     border-radius: 4px;
     margin: 0 4px 0 4px;
     font-family: sans-serif;
     font-weight: bolder;
-    background: #000;
+    background: var(--color-black);
 }
 
 #test__walkthrough, #test__results {
