@@ -32,25 +32,29 @@ for i in range(4):
             QuestionAnswerChoice.objects.create(question=q, answer=True, weight=1, criterion=criterion1)
             QuestionAnswerChoice.objects.create(question=q, answer=False, weight=0, criterion=criterion2)
 
+counter = 0
 for i, test in enumerate(Test.objects.all()):
+    counter += 1
+    respondent = None
+    result = None
+    user = None
     if i < 20:
-        respondent = Respondent.objects.create(user=users[0], test=test)
-        for k in range(15):
-            Response.objects.create(answer_id=((k+1)*2), respondent=respondent)
-        RespondentResult.objects.create(respondent=respondent, result=TestUniqueResult.objects.get(id=1))
+        user = users[0]
+        result = TestUniqueResult.objects.get(id=1)
     elif i < 40:
-        respondent = Respondent.objects.create(user=users[1], test=test)
-        for k in range(15):
-            Response.objects.create(answer_id=((k+1)*2), respondent=respondent)
-        RespondentResult.objects.create(respondent=respondent, result=TestUniqueResult.objects.get(id=2))
+        user = users[1]
+        result = TestUniqueResult.objects.get(id=2)
     elif i < 60:
-        respondent = Respondent.objects.create(user=users[2], test=test)
-        for k in range(15):
-            Response.objects.create(answer_id=((k+1)*2), respondent=respondent)
-        RespondentResult.objects.create(respondent=respondent, result=TestUniqueResult.objects.get(id=3))
+        user = users[2]
+        result = TestUniqueResult.objects.get(id=3)
     elif i < 80:
-        respondent = Respondent.objects.create(user=users[3], test=test)
-        for k in range(15):
-            Response.objects.create(answer_id=((k+1)*2), respondent=respondent)
-        RespondentResult.objects.create(respondent=respondent, result=TestUniqueResult.objects.get(id=4))
+        user = users[3]
+        result = TestUniqueResult.objects.get(id=4)
+    if user and result:
+        respondent = Respondent.objects.create(user=user, test=test)
+        answer_choices = QuestionAnswerChoice.objects.filter(question__test=test)[:15]
+        for answer in answer_choices:
+            Response.objects.create(answer=answer, respondent=respondent)
+        RespondentResult.objects.create(respondent=respondent, result=result)
+
 

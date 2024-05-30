@@ -22,6 +22,7 @@
     {% block additional_js %} {% endblock additional_js %}
     <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <meta name="csrf-token" content="{{ csrf_token }}">
+    {% block additional_meta_tags %} {% endblock %}
 </head>
 <body>
 <svg class="svg__list" xmlns="http://www.w3.org/2000/svg">

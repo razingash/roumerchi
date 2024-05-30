@@ -72,11 +72,7 @@
                         <div class="item__avatar"></div>
                         <div class="item__preview">{{ test.preview }}</div>
                         <div class="item__reputation">{{ test.grade }}</div>
-                        <div class="item__status">
-                            {% if test.is_underway %}
-                            <svg class="svg__test_status">
-                                <use xlink:href="#icon_test_in_progress"></use>
-                            </svg>{% endif %}
+                        <div class="item__status" id="{{ test.id }}">
                             {% if test.is_completed %}
                             <svg class="svg__test_status">
                                 <use xlink:href="#icon_test_completed"></use>

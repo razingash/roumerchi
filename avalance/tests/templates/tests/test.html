@@ -11,7 +11,9 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'tests/js/test_walkthrough.js' %}"></script>
 {% endblock %}
-
+{% block additional_meta_tags %}
+<meta name="test_id" content="{{ test.id }}">
+{% endblock %}
 {% block content %}
 <div class="section">{% if test_results %}
     <div class="test__field" id="test__ended">

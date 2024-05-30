@@ -31,7 +31,6 @@ class TestStatuses(models.IntegerChoices):
 class CriterionFilters(models.IntegerChoices):
     COMPLETED = 1, 'completed'
     UNCOMPLETED = 2, 'uncompleted'
-    UNDERWAY = 3, 'underway'
 
 class SortingFilters(models.IntegerChoices):
     POPULARITY = 1, 'popularity'
@@ -142,7 +141,7 @@ class QuestionAnswerChoice(models.Model):
 class Respondent(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.DO_NOTHING)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
-    is_completed = models.BooleanField(default=True, blank=False, null=False) # false - underway | true - completed
+    is_completed = models.BooleanField(default=True, blank=False, null=False) # false - uncompleted | true - completed
 
 
 class Response(models.Model):
@@ -152,4 +151,38 @@ class Response(models.Model):
 
 class RespondentResult(models.Model):
     respondent = models.ForeignKey(Respondent, on_delete=models.CASCADE)
-    result = models.ForeignKey(TestUniqueResult, on_delete=models.CASCADE)
+    result = models.ForeignKey(TestUniqueResult, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        db_table = 'test_respondent_result'
+
+
+class Guest(models.Model):
+    time_stat = models.DateTimeField(auto_now=True, blank=False, null=False)
+
+    class Meta:
+        db_table = 'guest'
+
+
+class GuestRespondent(models.Model):
+    guest = models.ForeignKey(Guest, on_delete=models.CASCADE)
+    test = models.ForeignKey(Test, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'guest_respondent'
+
+
+class GuestRespondentResult(models.Model):
+    guest_respondent = models.ForeignKey(GuestRespondent, on_delete=models.CASCADE)
+    result = models.ForeignKey(TestUniqueResult, on_delete=models.DO_NOTHING)
+
+    class Meta:
+        db_table = 'guest_respondent_result'
+
+class GuestResponse(models.Model):
+    guest_respondent = models.ForeignKey(GuestRespondent, on_delete=models.CASCADE)
+    answer = models.ForeignKey(QuestionAnswerChoice, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = 'guest_response'
+

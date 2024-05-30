@@ -40,6 +40,23 @@ document.addEventListener('DOMContentLoaded', function () {
         category_type = null;
     });
 
+    // work with session cache
+    const testIdElements = document.querySelectorAll('.item__status');
+    testIdElements.forEach(function(element) {
+        const testId = element.id;
+        if (sessionStorage.getItem(testId)) {
+            const svgHTML = `
+                   <svg class="svg__test_status">
+                       <use xlink:href="#icon_test_in_progress"></use>
+                   </svg>
+               `;
+            element.innerHTML += svgHTML;
+        }
+    });
+    const allKeys = Object.keys(sessionStorage);
+    const testsId = allKeys.filter(key => !isNaN(key));
+
+
     $('#submit__button').on('click', function () {
         const params = new URLSearchParams();
 
@@ -66,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     'criterion_type': criterion_type,
                     'sorting_type': sorting_type,
                     'category_type': category_type,
+                    'underway_tests': testsId,
                 },
                 success: function (response) {
                     console.log('success')

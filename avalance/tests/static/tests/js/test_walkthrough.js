@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonBack = document.querySelector('.back_to_description');
     const questionLists = document.querySelectorAll('.quetions__list');
     const submitButton = document.querySelector('.submit');
+    const testId =  $('meta[name=test_id]').attr('content');
 
     const selectedAnswers = {};
     buttonStart.addEventListener('click', function () {
@@ -31,6 +32,33 @@ document.addEventListener('DOMContentLoaded', function () {
                 item.classList.remove('state_1');
             });
             event.target.closest('.quetion__item').querySelector('.checkbox__item').classList.add('state_1');
+
+            sessionStorage.setItem(testId, JSON.stringify(selectedAnswers));
+            console.log(sessionStorage)
+        }
+    }
+
+    function getSavedAnswers(testId) {
+        const savedAnswers = sessionStorage.getItem(testId);
+
+        if (savedAnswers) {
+            console.log(JSON.parse(savedAnswers))
+            return JSON.parse(savedAnswers);
+        }
+        return {};
+    }
+
+    const savedAnswers = getSavedAnswers(testId);
+    for (const [questionId, answerText] of Object.entries(savedAnswers)) {
+        const questionList = document.getElementById(questionId);
+        if (questionList) {
+            const radioInputs = questionList.querySelectorAll('input[type="radio"]');
+            radioInputs.forEach(radio => {
+                if (radio.nextElementSibling.innerText === answerText) {
+                    radio.checked = true;
+                    radio.closest('.quetion__item').querySelector('.checkbox__item').classList.add('state_1');
+                }
+            });
         }
     }
 
@@ -45,6 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     endedCriterionBars.forEach(function(bar) {
         let value = parseInt(bar.dataset.criterionPastBarValueId);
+        console.log(value, totalValues)
         let percentage = Math.round((value / totalValues) * 100);
         bar.style.width = percentage + '%';
         let criterionResult = bar.closest('.diagram__item').querySelector('.diagram__result');

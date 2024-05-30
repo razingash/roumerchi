@@ -177,11 +177,12 @@ class SearchTestsView(ListView, DataMixin):
         combined_context = context | mix
         return combined_context
 
-    def get_queryset(self):
+    def get_queryset(self, underway_tests=None):
         criterion = self.request.GET.get('criterion_type')
         sorting = self.request.GET.get('sorting_type')
         category = self.request.GET.get('category_type')
-
+        underway_tests = self.request.POST.getlist('underway_tests[]')
+        print('avalance', criterion, sorting, category, underway_tests)
         if self.request.user.is_authenticated:
             user_uuid = self.request.user.uuid
             queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, user_uuid=user_uuid)
@@ -192,11 +193,12 @@ class SearchTestsView(ListView, DataMixin):
 
     def post(self, request, *args, **kwargs):
         if request.POST.get('request_type') == 'advanced_search':
+            #underway_tests = request.POST.getlist('underway_tests[]')
             return JsonResponse({'message': 'all good'})
         else:
             return JsonResponse({'message': 'mistake'})
 
-class TestView(LoginRequiredMixin, DetailView, DataMixin):
+class TestView(DetailView, DataMixin):
     model = Test
     template_name = 'tests/test.html'
     context_object_name = 'test'
