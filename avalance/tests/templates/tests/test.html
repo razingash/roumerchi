@@ -6,13 +6,12 @@
 {% block additional_css %}
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/test.css' %}">
 {% endblock %}
+{% block additional_meta_tags %}
+<meta name="test-id" content="{{ test.id }}">
+{% endblock %}
 {% block additional_js %}
-    <meta name="test-id" content="{{ test.id }}">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="{% static 'tests/js/test_walkthrough.js' %}"></script>
-{% endblock %}
-{% block additional_meta_tags %}
-<meta name="test_id" content="{{ test.id }}">
 {% endblock %}
 {% block content %}
 <div class="section">{% if test_results %}

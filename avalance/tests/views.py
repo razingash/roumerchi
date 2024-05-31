@@ -12,9 +12,9 @@ from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, C
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
     TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
-from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_respondent, custom_exception, \
-    get_user_tests, get_user_completed_tests, validate_paginator_get_attribute, get_question_answers_formset, \
-    get_question_answer_counter, get_test_categories, get_user_created_tests, get_filtered_tests, get_test_results
+from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
+    validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests,\
+    get_test_results, get_test_results_for_guest
 from tests.utils import DataMixin
 
 
@@ -120,10 +120,11 @@ class ProfileView(DetailView, DataMixin):
         categories = get_test_categories()
 
         if self.request.user.is_authenticated:
-            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category,
-                                       profile_uuid=profile_uuid, user_uuid=self.request.user.uuid)
+            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, is_guest=False,
+                                       profile_uuid=profile_uuid, visitor_uuid=self.request.user.uuid)
         else:
-            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, profile_uuid=profile_uuid)
+            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category,
+                                       profile_uuid=profile_uuid, is_guest=True)
 
         paginator = Paginator(tests, self.paginate_by)
         page_number = self.request.GET.get('page')
@@ -181,14 +182,16 @@ class SearchTestsView(ListView, DataMixin):
         criterion = self.request.GET.get('criterion_type')
         sorting = self.request.GET.get('sorting_type')
         category = self.request.GET.get('category_type')
-        underway_tests = self.request.POST.getlist('underway_tests[]')
-        print('avalance', criterion, sorting, category, underway_tests)
+        #underway_tests = self.request.POST.getlist('underway_tests[]')
+        print(criterion, sorting, category)
         if self.request.user.is_authenticated:
             user_uuid = self.request.user.uuid
-            queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, user_uuid=user_uuid)
+            queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, is_guest=False,
+                                          visitor_uuid=user_uuid)
         else:
-            #queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category)
-            queryset = Test.objects.all()
+            guest_uuid = self.request.GET.get('gu')
+            queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, is_guest=True,
+                                          visitor_uuid=guest_uuid)
         return queryset
 
     def post(self, request, *args, **kwargs):
@@ -198,6 +201,7 @@ class SearchTestsView(ListView, DataMixin):
         else:
             return JsonResponse({'message': 'mistake'})
 
+
 class TestView(DetailView, DataMixin):
     model = Test
     template_name = 'tests/test.html'
@@ -205,11 +209,13 @@ class TestView(DetailView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        test_results = get_test_results(test=self.object, user=self.request.user)
         if self.request.user.is_authenticated:
+            test_results = get_test_results(test=self.object, user=self.request.user)
             mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, test_results=test_results)
         else:
-            mix = self.get_user_context(title='Profile')
+            guest_uuid = self.request.GET.get('gu')
+            test_results = get_test_results_for_guest(test=self.object, guest_uuid=guest_uuid)
+            mix = self.get_user_context(title='Profile', test_results=test_results)
         return context | mix
 
     def get_object(self, queryset=None):
@@ -217,16 +223,21 @@ class TestView(DetailView, DataMixin):
         queryset = get_test_info_by_slug(test_slug=test_slug)
         return get_object_or_404(queryset)
 
-    @custom_exception(expected_return=None)
     def post(self, request, *args, **kwargs):
         request_type = request.POST.get('request_type')
-        sender_id = request.POST.get('sender_id')
+        sender_uuid = request.POST.get('sender_uuid')
         test_id = request.POST.get('test_id')
         selected_answers = request.POST.getlist('selected_answers[]')
         if request_type == 'new_walkthrough':
-            if sender_id is not None:
-                result, criterions = create_new_test_respondent(sender_id=sender_id, test_id=test_id, answers=selected_answers)
-                return JsonResponse({'status': 200, 'message': result, 'criterions': criterions})
+            if sender_uuid is not None:
+                if self.request.user.is_authenticated:
+                    result, criterions = create_new_test_walkthrough(sender_uuid=sender_uuid, test_id=test_id,
+                                                                     answers=selected_answers, is_guest=False)
+                    return JsonResponse({'status': 200, 'message': result, 'criterions': criterions})
+                else:
+                    result, criterions = create_new_test_walkthrough(sender_uuid=sender_uuid, test_id=test_id,
+                                                                     answers=selected_answers, is_guest=True)
+                    return JsonResponse({'status': 200, 'message': result, 'criterions': criterions})
         return JsonResponse({'message': 'something get wrong'})
 
 

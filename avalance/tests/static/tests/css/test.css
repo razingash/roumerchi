@@ -149,6 +149,7 @@
     display: flex;
     margin: 7px 8px 7px 4px;
     position: relative;
+    cursor: pointer;
 }
 
 .doppelganged_checkbox {
@@ -167,7 +168,10 @@
     background-color: var(--color-white);
 }
 .state_1 {
-    background-color: #1ed21e;
+    background-color: #1ed21e !important;
+}
+.state_2 {
+    background-color: #0071cb;
 }
 
 .test__questions {

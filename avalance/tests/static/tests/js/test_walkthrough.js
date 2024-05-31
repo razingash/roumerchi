@@ -6,7 +6,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const buttonBack = document.querySelector('.back_to_description');
     const questionLists = document.querySelectorAll('.quetions__list');
     const submitButton = document.querySelector('.submit');
-    const testId =  $('meta[name=test_id]').attr('content');
+    const testId =  $('meta[name=test-id]').attr('content');
+    const csrfToken = $('meta[name=csrf-token]').attr('content');
+    const userUuidTag = $('meta[name=user-uuid]').attr('content');
 
     const selectedAnswers = {};
     buttonStart.addEventListener('click', function () {
@@ -25,7 +27,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const questionId = event.target.closest('.quetions__list').id;
             selectedAnswers[questionId] = event.target.nextElementSibling.innerText;
 
-            console.log(selectedAnswers);
+            /*console.log(selectedAnswers);*/
 
             const checkboxItems = event.target.closest('.quetions__list').querySelectorAll('.checkbox__item');
             checkboxItems.forEach(function(item) {
@@ -34,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function () {
             event.target.closest('.quetion__item').querySelector('.checkbox__item').classList.add('state_1');
 
             sessionStorage.setItem(testId, JSON.stringify(selectedAnswers));
-            console.log(sessionStorage)
+            /*console.log(sessionStorage);*/
         }
     }
 
@@ -55,8 +57,13 @@ document.addEventListener('DOMContentLoaded', function () {
             const radioInputs = questionList.querySelectorAll('input[type="radio"]');
             radioInputs.forEach(radio => {
                 if (radio.nextElementSibling.innerText === answerText) {
+                    /* it's really hard to bypass browser restrictions((
+                    radio.dispatchEvent(new Event('click', { bubbles: true }));
+                    radio.dispatchEvent(new Event('change', { bubbles: true }));
+                    radio.setAttribute('checked', 'checked');
                     radio.checked = true;
-                    radio.closest('.quetion__item').querySelector('.checkbox__item').classList.add('state_1');
+                    */
+                    radio.closest('.quetion__item').querySelector('.checkbox__item').classList.add('state_2');
                 }
             });
         }
@@ -73,13 +80,12 @@ document.addEventListener('DOMContentLoaded', function () {
     });
     endedCriterionBars.forEach(function(bar) {
         let value = parseInt(bar.dataset.criterionPastBarValueId);
-        console.log(value, totalValues)
+        /*console.log(value, totalValues)*/
         let percentage = Math.round((value / totalValues) * 100);
         bar.style.width = percentage + '%';
         let criterionResult = bar.closest('.diagram__item').querySelector('.diagram__result');
         criterionResult.innerHTML = percentage + '%';
     });
-
 
     submitButton.addEventListener('click', function () {
         const unansweredQuestions = Array.from(questionLists).filter(function (list) {
@@ -101,27 +107,32 @@ document.addEventListener('DOMContentLoaded', function () {
             answers.push(selectedAnswer);
         });
 
-        const currentUrl = window.location.href;
-        const csrfToken = $('meta[name=csrf-token]').attr('content');
-        const userId = 1;
-        const testId = $('meta[name="test-id"]').attr('content');
-
+        const sessionUUID = sessionStorage.getItem('sessionUUID');
+        const url = new URL(window.location.href);
+        url.searchParams.set('gu', sessionUUID);
+        console.log(url)
+        let userUuid;
+        if (userUuidTag) {
+            userUuid = userUuidTag;
+        } else {
+            userUuid = sessionStorage.getItem('sessionUUID');
+        }
         $.post({
-            url: currentUrl,
+            url: url,
             headers: {
                 'X-CSRFToken': csrfToken
             },
             data: {
                 'request_type': 'new_walkthrough',
                 'test_id': testId,
-                'sender_id': userId,
+                'sender_uuid': userUuid,
                 'selected_answers': answers
             },
             success: function (response) {
                 console.log(response)
-                console.log('status' + response.status)
-                console.log('data' + response.data)
-                console.log('message' + response.message)
+                console.log('status ' + response.status)
+                console.log('data ' + response.data)
+                console.log('message ' + response.message)
                 if (response && response.status === 200) {
                     $('#unique__result').html(response.message);
                     $('#test__results').css('display', 'flex')

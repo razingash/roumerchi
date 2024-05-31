@@ -159,6 +159,7 @@ class RespondentResult(models.Model):
 
 class Guest(models.Model):
     time_stat = models.DateTimeField(auto_now=True, blank=False, null=False)
+    uuid = models.UUIDField(primary_key=False, blank=True, null=True)
 
     class Meta:
         db_table = 'guest'
@@ -167,6 +168,7 @@ class Guest(models.Model):
 class GuestRespondent(models.Model):
     guest = models.ForeignKey(Guest, on_delete=models.CASCADE)
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
+    is_completed = models.BooleanField(default=True, blank=False, null=False) # false - uncompleted | true - completed
 
     class Meta:
         db_table = 'guest_respondent'

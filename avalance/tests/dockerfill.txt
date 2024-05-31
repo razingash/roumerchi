@@ -57,4 +57,3 @@ for i, test in enumerate(Test.objects.all()):
             Response.objects.create(answer=answer, respondent=respondent)
         RespondentResult.objects.create(respondent=respondent, result=result)
 
-
