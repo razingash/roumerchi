@@ -136,7 +136,7 @@ class ProfileView(DetailView, DataMixin):
                                         modified_get=modified_get)
         else:
             mix = self.get_user_context(title='Profile', categories=categories, sortings=sortings, criterions=criterions,
-                                        modified_get=modified_get)
+                                        modified_get=modified_get, tests=tests)
         return context | mix
 
     def get_object(self, queryset=None):
@@ -153,7 +153,6 @@ class ProfileView(DetailView, DataMixin):
 
 class SearchTestsView(ListView, DataMixin):
     model = Test
-    ordering = ['-id']
     template_name = 'tests/search_test.html'
     context_object_name = 'tests'
     paginate_by = 20
@@ -231,13 +230,17 @@ class TestView(DetailView, DataMixin):
         if request_type == 'new_walkthrough':
             if sender_uuid is not None:
                 if self.request.user.is_authenticated:
-                    result, criterions = create_new_test_walkthrough(sender_uuid=sender_uuid, test_id=test_id,
-                                                                     answers=selected_answers, is_guest=False)
-                    return JsonResponse({'status': 200, 'message': result, 'criterions': criterions})
+                    test_result, criterions = create_new_test_walkthrough(sender_uuid=sender_uuid, test_id=test_id,
+                                                                          answers=selected_answers, is_guest=False)
+                    if 'result_1' in criterions and 'result_2' in criterions:
+                        return JsonResponse({'status': 400, 'message': test_result, 'criterions': criterions})
+                    return JsonResponse({'status': 200, 'message': test_result, 'criterions': criterions})
                 else:
-                    result, criterions = create_new_test_walkthrough(sender_uuid=sender_uuid, test_id=test_id,
-                                                                     answers=selected_answers, is_guest=True)
-                    return JsonResponse({'status': 200, 'message': result, 'criterions': criterions})
+                    test_result, criterions = create_new_test_walkthrough(sender_uuid=sender_uuid, test_id=test_id,
+                                                                          answers=selected_answers, is_guest=True)
+                    if 'result_1' in criterions and 'result_2' in criterions:
+                        return JsonResponse({'status': 400, 'message': test_result, 'criterions': criterions})
+                    return JsonResponse({'status': 200, 'message': test_result, 'criterions': criterions})
         return JsonResponse({'message': 'something get wrong'})
 
 

@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         testEndedResult.parentNode.removeChild(testEndedResult);
                     }
                     console.log('Success');
-                    console.log(response.criterions);
+                    sessionStorage.removeItem(testId);
                 } else {
                     console.error('Error during sending POST request:', response.message);
                 }

@@ -122,19 +122,3 @@
     color: #f91616;
 }
 
-
-.partition {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-}
-
-.partition__big {
-    height: 1px;
-    width: 90%;
-    background: var(--color-black);
-}
-.partition__wide{
-    height: 2px;
-}
-

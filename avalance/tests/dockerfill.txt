@@ -31,29 +31,3 @@ for i in range(4):
             q = TestQuestion.objects.create(question=f"Question number {f} for test_{counter}", test=test)
             QuestionAnswerChoice.objects.create(question=q, answer=True, weight=1, criterion=criterion1)
             QuestionAnswerChoice.objects.create(question=q, answer=False, weight=0, criterion=criterion2)
-
-counter = 0
-for i, test in enumerate(Test.objects.all()):
-    counter += 1
-    respondent = None
-    result = None
-    user = None
-    if i < 20:
-        user = users[0]
-        result = TestUniqueResult.objects.get(id=1)
-    elif i < 40:
-        user = users[1]
-        result = TestUniqueResult.objects.get(id=2)
-    elif i < 60:
-        user = users[2]
-        result = TestUniqueResult.objects.get(id=3)
-    elif i < 80:
-        user = users[3]
-        result = TestUniqueResult.objects.get(id=4)
-    if user and result:
-        respondent = Respondent.objects.create(user=user, test=test)
-        answer_choices = QuestionAnswerChoice.objects.filter(question__test=test)[:15]
-        for answer in answer_choices:
-            Response.objects.create(answer=answer, respondent=respondent)
-        RespondentResult.objects.create(respondent=respondent, result=result)
-

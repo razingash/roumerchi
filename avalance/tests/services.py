@@ -2,7 +2,7 @@ import uuid
 
 from django.db import transaction
 from django import forms
-from django.db.models import Count, Q, When, Case
+from django.db.models import Count, Q, When, Case, Max
 
 from tests.forms import TestQuestionAnswersForm
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
@@ -14,24 +14,27 @@ class CustomException(Exception):
     def __init__(self, message):
         super().__init__(message)
 
-def custom_exception(expected_return=None): # overwhelming
+def custom_exception(expected_return=None, *return_args, **return_kwargs): # overwhelming
     def decorator(func: callable):
         def wrapper(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except CustomException as e:
-                print(f"error:{e}")
+                print(f"Error: {e}")
                 if callable(expected_return):
                     return expected_return(*args, **kwargs)
+                if return_args or return_kwargs:
+                    return return_args, return_kwargs
                 return expected_return
         return wrapper
     return decorator
 
+@custom_exception(expected_return=0)
 def to_int(value):
     try:
         value = int(value)
-    except (ValueError, TypeError):
-        print('error')
+    except (ValueError, TypeError) as e:
+        raise CustomException(f'error in to_int(): {e}')
     else:
         return value
 
@@ -39,16 +42,26 @@ def to_int(value):
 def get_test_categories():
     return TestCategories.choices
 
-
+@custom_exception(expected_return=None)
 def get_user_id(user_uuid):
-    return CustomUser.objects.only('id').filter(uuid=user_uuid)[0].id
-
-def get_guest(guest__uuid):
-    if Guest.objects.filter(uuid=guest__uuid).exists():
-        return Guest.objects.get(uuid=guest__uuid)
+    user = CustomUser.objects.only('id').filter(uuid=user_uuid).first().id
+    if user:
+        return user
     else:
-        guest = Guest.objects.create(uuid=guest__uuid)
-        return guest
+        raise CustomException(f'Impossible error in get_user_id(): {get_user_id}')
+
+def get_guest(guest__uuid): # don't check this because it should be possible
+    try:
+        guest__uuid = uuid.UUID(str(guest__uuid))
+    except (ValueError, TypeError) as e:
+        print(f'error: {e}')
+        return None
+    else:
+        if Guest.objects.filter(uuid=guest__uuid).exists():
+            return Guest.objects.get(uuid=guest__uuid)
+        else:
+            guest = Guest.objects.create(uuid=guest__uuid)
+            return guest
 
 def get_profile_info(profile_uuid):
     return CustomUser.objects.filter(uuid=profile_uuid)
@@ -58,9 +71,6 @@ def get_test_info_by_slug(test_slug):
     queryset = queryset.filter(preview_slug=test_slug)
     return queryset
 
-
-def get_user_tests(user_id):
-    return Test.objects.order_by('-id').filter(author_id=user_id)
 
 def get_test_results(test, user):
     respondent = Respondent.objects.prefetch_related('respondentresult_set', 'response_set').filter(user=user, test=test, is_completed=True)
@@ -109,12 +119,12 @@ def get_test_results_for_guest(test, guest_uuid):
 
 
 def get_user_completed_tests(profile_uuid):
-    user_id = CustomUser.objects.only('id').get(uuid=profile_uuid).id
+    user_id = get_user_id(user_uuid=profile_uuid)
     tests = Respondent.objects.select_related('test').order_by('-id').filter(user_id=user_id)
     return tests
 
 def get_user_created_tests(criterion, sorting, category, profile_uuid):
-    user_id = CustomUser.objects.only('id').get(uuid=profile_uuid).id
+    user_id = get_user_id(user_uuid=profile_uuid)
     tests = get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
                                            visitor_uuid=profile_uuid, is_guest=False)
     tests = tests.filter(author_id=user_id)
@@ -122,13 +132,17 @@ def get_user_created_tests(criterion, sorting, category, profile_uuid):
 
 
 def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None):
+    """In case of duplicates that may occur in the future if storing incomplete attempts to take a test in the
+    database, try to use distinct(), or modify is_complete"""
     if is_guest: # for guests
-        visitor_id = get_guest(guest__uuid=visitor_uuid).id
+        visitor_id = get_guest(guest__uuid=visitor_uuid)
+        if visitor_id is not None:
+            visitor_id = visitor_id.id
+
         is_test_completed = 'guestrespondent__guest_id'
         model = GuestRespondent
         resp = 'guestrespondent'
         filter_by_visitor = 'guest_id'
-        print(f'visitor_id: {visitor_id}')
     else: # for users
         visitor_id = get_user_id(user_uuid=visitor_uuid)
         is_test_completed = 'respondent__user_id'
@@ -138,10 +152,11 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
 
     test_visitor_contact = {is_test_completed: visitor_id}
     model_filter = {filter_by_visitor: visitor_id}
-
-    is_completed = Case(When(**test_visitor_contact, then=True), default=False)  # annotation to mark completed tests
     filters = Q()
+    is_completed = Max(Case(When(**test_visitor_contact, then=True), default=False))  # annotation to mark completed tests
 
+    if visitor_id is None:
+        is_completed = Case(default=False)
 
     if criterion is None and sorting is None and category is None and profile_uuid is None:
         tests = Test.objects.annotate(is_completed=is_completed).order_by('-id')
@@ -155,7 +170,7 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
         tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('-id')
         return tests
 
-    if criterion is not None:  # make flat view for special cases, if the orm queries will be ?very different?
+    if criterion is not None:
         if sorting is not None:
             if category is not None:  # criterion, sorting  and category
                 filters &= Q(category=category)
@@ -239,7 +254,7 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
                 tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('publication_date')
             return tests
         else:  # only categories
-            tests = Test.objects.annotate(is_completed=is_completed).filter(filters)
+            tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('-id')
             return tests
     elif sorting is not None:  # only sorting
         tests = Test.objects
@@ -306,7 +321,8 @@ def get_question_answer_counter(user_id):
 
 
 def calculate_test_result(test_id, answers): # добавить проверку на неравенство списков вопросов
-    #TestQuestion.objects.prefetch_related('question', 'questionanswerchoice_set').filter(test_id=1)
+    if type(answers) is not list:
+        raise CustomException('Red error: answers in create_new_test_respondent() must be list instance')
     questions = TestQuestion.objects.prefetch_related('question__testquestion_set__questionanswerchoice_set').filter(test_id=test_id)
     if questions.exists():
         k = 0
@@ -327,7 +343,7 @@ def calculate_test_result(test_id, answers): # добавить проверку
             return result[0], true_answers, criterions
     raise Exception('something get wrong')
 
-def create_new_test_respondent(sender_id, test_id, result, answers, is_guest: bool): # both users and guests
+def create_new_test_respondent(sender_id, test_id, result, answers: list, is_guest: bool): # both users and guests
     if is_guest: # for guest
         respondent_model, result_model, response_model = GuestRespondent, GuestRespondentResult, GuestResponse
         prefetch_response, prefetch_result = 'guestresponse_set', 'guestrespondentresult_set'
@@ -363,28 +379,31 @@ def create_new_test_respondent(sender_id, test_id, result, answers, is_guest: bo
 
         return result.result
 
-
 @transaction.atomic
-def create_new_test_walkthrough(sender_uuid, test_id, answers, is_guest):
+@custom_exception(result_1=None, result2=None)
+def create_new_test_walkthrough(sender_uuid, test_id, answers, is_guest: bool):
+    if type(answers) is not list:
+        raise CustomException('Red error: answers in create_new_test_respondent() must be list instance')
+    if type(is_guest) is not bool:
+        is_guest = False
     if is_guest: # for guests
         sender_id = get_guest(guest__uuid=sender_uuid).id
     else: # for users
         sender_id = get_user_id(user_uuid=sender_uuid)
-        print(0)
-    print(type(test_id))
-    sender_id, test_id = int(sender_id), int(test_id)
-    print(answers)
-    if Test.objects.filter(id=test_id).exists():
+    if sender_id is None:
         result, answers, criterions = calculate_test_result(test_id=test_id, answers=answers)
-        if is_guest: # for guests
-            new_respondent_guest = create_new_test_respondent(sender_id=sender_id, test_id=test_id, is_guest=True,
-                                                              result=result, answers=answers)
-            return new_respondent_guest, criterions
-        else: # for logged users
-            new_respondent_user = create_new_test_respondent(sender_id=sender_id, test_id=test_id, is_guest=False,
-                                                             result=result, answers=answers)
-            return new_respondent_user, criterions
-    raise CustomException('something went wrong')
+        return None, criterions
+        #raise CustomException(f'somehow, is_guest: {is_guest} completed test without uuid')
+    sender_id, test_id = to_int(sender_id), to_int(test_id)
+    print(answers)
+    if Test.objects.filter(id=test_id).exists(): # both for guest and user
+        result, answers, criterions = calculate_test_result(test_id=test_id, answers=answers)
+        test_result = create_new_test_respondent(sender_id=sender_id, test_id=test_id, is_guest=is_guest, result=result,
+                                                 answers=answers)
+        print(test_result)
+        return test_result, criterions
+
+    raise CustomException("test doesn't exist")
 
 
 @custom_exception(expected_return=0)

@@ -27,24 +27,28 @@
                     return v.toString(16);
                 });
             }
-            // Проверка наличия UUID в sessionStorage
             function checkAndSetUUID() {
                 const sessionUUIDKey = 'sessionUUID';
                 let uuid = sessionStorage.getItem(sessionUUIDKey);
 
+
                 if (!uuid) {
-                    // UUID не найден, создаем новый
                     uuid = generateUUID();
                     sessionStorage.setItem(sessionUUIDKey, uuid);
-                    console.log(`UUID не найден. Создан новый UUID: ${uuid}`);
-                } else {
-                    console.log(`Найден UUID: ${uuid}`);
                 }
                 return uuid;
             }
-
-            // Вызов функции проверки и создания UUID
             const sessionUUID = checkAndSetUUID();
+
+            const search_link_1 = document.getElementById('search_test_1');
+            const search_link_2 = document.getElementById('search_test_2');
+            let search_href_1 = search_link_1.getAttribute('href');
+            search_href_1 += '?gu=' + sessionUUID;
+            search_link_1.setAttribute('href', search_href_1);
+            let search_href_2 = search_link_2.getAttribute('href');
+            search_href_2 += '?gu=' + sessionUUID;
+            search_link_2.setAttribute('href', search_href_2);
+
             console.log(`visitor uuid: ${sessionUUID}`);
         });
     </script>
@@ -96,19 +100,19 @@
                     </label>
                 {% if request.user.is_authenticated %}
                 <a href="{% url 'profile' user_uuid %}" class="header__dropdown__item">Profile</a>
-                <a href="{% url 'search_test' %}" class="header__dropdown__item" id="search_test">Tests</a>
+                <a href="{% url 'search_test' %}" class="header__dropdown__item" id="search_test_1">Tests</a>
                 <a href="{% url 'logout' %}" class="header__dropdown__item">log out</a>
                 {% else %}
                 <div class="header__dropdown__auth">
                     <a href="{% url 'registration' %}" class="dropdown__auth__registration">sign up</a>
                     <a href="{% url 'login' %}" class="dropdown__auth__login">sign in</a>
                 </div>
-                <a href="{% url 'search_test' %}" class="header__dropdown__item" id="search_test">Tests</a>
+                <a href="{% url 'search_test' %}" class="header__dropdown__item" id="search_test_1">Tests</a>
                 {% endif %}
                 </div>
             </div>
         </div>
-        <a href="{% url 'search_test' %}" class="header__sitename">Roumerchi</a>
+        <a href="{% url 'search_test' %}" class="header__sitename" id="search_test_2">Roumerchi</a>
         {% if request.user.is_authenticated %}
         <a href="{% url 'profile' user_uuid %}" class="header__user_cover">
             <svg class="svg__user">

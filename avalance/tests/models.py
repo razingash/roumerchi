@@ -159,7 +159,7 @@ class RespondentResult(models.Model):
 
 class Guest(models.Model):
     time_stat = models.DateTimeField(auto_now=True, blank=False, null=False)
-    uuid = models.UUIDField(primary_key=False, blank=True, null=True)
+    uuid = models.UUIDField(primary_key=False, blank=True, null=False, unique=True)
 
     class Meta:
         db_table = 'guest'

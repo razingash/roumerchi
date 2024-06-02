@@ -142,7 +142,7 @@
 .test__list {
     display: flex;
     flex-wrap: wrap;
-    margin: 15px 20px 20px 20px;
+    padding: 15px 20px 15px 20px;
 }
 
 .test__cell {
@@ -197,6 +197,26 @@
 .svg__test_status{
     height: 25px;
     width: 25px;
+}
+
+.empty__item__header {
+    font-family: sans-serif;
+    font-weight: 600;
+}
+
+.partition {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.partition__big {
+    height: 1px;
+    width: 90%;
+    background: var(--color-black);
+}
+.partition__wide{
+    height: 2px;
 }
 
 

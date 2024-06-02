@@ -72,6 +72,10 @@ document.addEventListener('DOMContentLoaded', function () {
     $('#submit__button').on('click', function () {
         const params = new URLSearchParams();
 
+        if (!userUuidTag){
+            params.append('gu', sessionStorage.getItem('sessionUUID'));
+        }
+
         if (criterion_type !== null) {
             params.append('criterion_type', criterion_type);
         }

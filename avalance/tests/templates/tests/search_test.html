@@ -66,12 +66,13 @@
                 <div class="hidden__field"></div>
             </div>
             <div class="test__list">
+                {% if tests %}
                 {% for test in tests %}
                 <div class="test__cell">
                     <a href="{{ test.get_absolute_url }}" id="{{ test.id }}" class="test__item">
                         <div class="item__avatar"></div>
                         <div class="item__preview">{{ test.preview }}</div>
-                        <div class="item__reputation">{{ test.grade }}</div>
+                        <div class="item__reputation"></div>
                         <div class="item__status" id="{{ test.id }}">
                             {% if test.is_completed %}
                             <svg class="svg__test_status">
@@ -81,11 +82,17 @@
                     </a>
                 </div>
                 {% endfor %}
+                {% else %}
+                    <div class="empty__result">
+                        <div class="empty__item__header">No results found</div>
+                        <div class="empty__item">Try adjusting your filter options to find what you are looking for</div>
+                    </div>
+                {% endif %}
             </div>
+            {% if page_obj.has_other_pages %}
             <div class="partition">
                 <div class="partition__big partition__wide"></div>
             </div>
-            {% if page_obj.has_other_pages %}
             <div class="pagination">
                 {% if page_obj.has_previous %}
                     <a href="?{{ modified_get.urlencode }}&page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
