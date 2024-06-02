@@ -70,7 +70,29 @@
                 {% for test in tests %}
                 <div class="test__cell">
                     <a href="{{ test.get_absolute_url }}" id="{{ test.id }}" class="test__item">
-                        <div class="item__avatar"></div>
+                        <div class="item__avatar">
+                            {% if test.category == 1 %}
+                            <svg class="svg__test_preview">
+                                <use xlink:href="#icon_intelligence"></use>
+                            </svg>
+                            {% elif test.category == 2 %}
+                            <svg class="category">
+                                <use xlink:href="#icon_psychology"></use>
+                            </svg>
+                            {% elif test.category == 3 %}
+                            <svg class="svg__test_preview">
+                                <use xlink:href="#icon_professional"></use>
+                            </svg>
+                            {% elif test.category == 4 %}
+                            <svg class="svg__test_preview">
+                                <use xlink:href="#icon_entertainment"></use>
+                            </svg>
+                            {% elif test.category == 5 %}
+                            <svg class="svg__test_preview">
+                                <use xlink:href="#icon_heart"></use>
+                            </svg>
+                            {% endif %}
+                        </div>
                         <div class="item__preview">{{ test.preview }}</div>
                         <div class="item__reputation"></div>
                         <div class="item__status" id="{{ test.id }}">
