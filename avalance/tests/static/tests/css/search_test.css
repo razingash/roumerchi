@@ -154,9 +154,10 @@
 .test__item {
     position: relative;
     display: flex;
+    align-items: center;
     flex-grow: 1;
     height: 5.5em;
-    padding: 12px 12px 12px 16px;
+    padding: 12px;
     background: #00000012;
     color: var(--color-black);
     border: 2px solid #0000003b;

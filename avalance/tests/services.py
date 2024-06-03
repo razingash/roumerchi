@@ -5,6 +5,7 @@ from django import forms
 from django.db.models import Count, Q, When, Case, Max
 
 from tests.forms import TestQuestionAnswersForm
+from tests.management.commands.bot import send_message
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
     TestCriterion, QuestionAnswerChoice, TestCategories, CriterionFilters, SortingFilters, Guest, GuestRespondent, \
     GuestResponse, GuestRespondentResult
@@ -21,6 +22,7 @@ def custom_exception(expected_return=None, *return_args, **return_kwargs): # ove
                 return func(*args, **kwargs)
             except CustomException as e:
                 print(f"Error: {e}")
+                send_message(error_message=e)
                 if callable(expected_return):
                     return expected_return(*args, **kwargs)
                 if return_args or return_kwargs:
