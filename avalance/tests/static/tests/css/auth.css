@@ -14,7 +14,6 @@
 .identification__field {
     position: relative;
     border-radius: 6px;
-    margin: 40px 0 40px 0;
     min-width: 350px;
     max-width: 450px;
 }
@@ -105,7 +104,7 @@
 }
 
 .form-label {
-
+    flex-wrap: nowrap;
 }
 
 .form-errors {
@@ -132,10 +131,25 @@
 
 @media (max-width: 768px) {
     .identification__field {
-        min-width: 300px;
-        max-width: 300px;
+        min-width: auto;
     }
     .form__login {
+        min-width: auto;
+    }
+}
+@media (max-width: 400px) {
+    .form__field {
         min-width: 0;
+        flex-direction: column;
+    }
+    .section__identification {
+        align-items: initial;
+    }
+    .identification__cold {
+        font-size: 1em;
+        padding: 6px 0 6px 0;
+    }
+    .identification__header {
+        font-size: 1.5em;
     }
 }

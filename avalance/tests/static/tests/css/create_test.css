@@ -8,8 +8,7 @@
 }
 
 .identification__field {
-    border-radius: 6px;
-    margin: 20px 0 20px 0;
+    margin: 80px 0 20px 0;
     min-width: 350px;
     max-width: 640px;
 }
@@ -125,7 +124,7 @@
 }
 
 .button__submit {
-    margin: 0 20px 20px 20px;
+    margin: 20px;
 }
 
 
@@ -146,20 +145,19 @@
 
 
 @media (max-width: 768px) {
+    .identification__header {
+        border-radius: initial;
+        border-left: initial;
+        border-right: initial;
+    }
     .identification__field {
-        all: initial;
+        margin-top: 60px;
+        min-width: initial;
     }
 
     .test__section {
         position: relative;
         margin: 0;
-    }
-    .section__identification {
-        height: auto;
-        border-radius: 0;
-        display: block;
-        border-top: 5px solid var(--color-black);
-        z-index: -1;
     }
 
     .form__field {
@@ -171,6 +169,8 @@
     .form__test {
         overflow: initial;
         max-height: none;
+        border: initial;
+        border-radius: initial;
     }
 
     .test__field {

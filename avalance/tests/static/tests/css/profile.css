@@ -2,10 +2,11 @@
 .profile {
     display: flex;
     flex-direction: column;
-    padding: 15px 0 15px 20px;
     position: relative;
     background: var(--containers-background);
     box-shadow: inset 0 0 10px rgb(0 0 0 / 50%);
+    padding: 15px 0 15px 20px;
+    margin-bottom: 40px;
 }
 
 .profile__intro {
@@ -121,4 +122,3 @@
 .negative {
     color: #f91616;
 }
-

@@ -6,7 +6,7 @@
     <title>{{ title }}</title>
     <link rel="icon" type="images/x-icon" href="{% static 'tests/favicon.ico' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'tests/css/core.css' %}">
-    {% block additional_css %} {% endblock additional_css %}
+    {% block additional_css %}{% endblock additional_css %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('menu__toggle').addEventListener('change', function() {
@@ -142,6 +142,6 @@
         </a>
         {% endif %}
     </div>
-    {% block content %}{% endblock content %}
+    {% spaceless %}{% block content %}{% endblock content %}{% endspaceless %}
 </body>
 </html>

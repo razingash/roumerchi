@@ -18,6 +18,9 @@ from django.contrib import admin
 from django.urls import path, include, re_path
 from django.conf.urls.static import static
 from avalance import settings
+from tests.views import page_forbidden_error
+
+handler403 = page_forbidden_error
 
 urlpatterns = [
     path('admin/', admin.site.urls),

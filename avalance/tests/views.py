@@ -3,7 +3,7 @@ from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.views import LoginView, PasswordChangeView
 from django.core.paginator import Paginator
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponseNotFound, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
@@ -13,8 +13,8 @@ from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, C
     TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
-    validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests,\
-    get_test_results, get_test_results_for_guest
+    validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
+    get_test_results, get_test_results_for_guest, custom_exception, CustomException
 from tests.utils import DataMixin
 
 
@@ -284,20 +284,38 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/create_test_questions.html'
     form_class = TestQuestionFormSet
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    @custom_exception(expected_return=HttpResponseForbidden)
+    def get(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             answers_formset = get_question_answers_formset(self.request.user.id)
+            if answers_formset is None:
+                return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
+            context = self.get_context_data(answers_formset=answers_formset)
+            return self.render_to_response(context)
+        raise CustomException('Black Error: in CreateTestQuestions someone gained access without authorization')
 
-            if self.request.method == 'GET':
-                question_formset = TestQuestionFormSet()
-                answer_formset = answers_formset()
-            else:
-                question_formset = TestQuestionFormSet(self.request.POST)
-                answer_formset = answers_formset(self.request.POST)
-            mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, formset=question_formset,
-                                        formset2=answer_formset)
-            return context | mix
+    @custom_exception(expected_return=HttpResponseForbidden)
+    def post(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            answers_formset = get_question_answers_formset(self.request.user.id)
+            if answers_formset is None:
+                return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
+            context = self.get_context_data(answers_formset=answers_formset)
+            return self.render_to_response(context)
+        raise CustomException('Black Error: in CreateTestQuestions someone tried POST request without authorization')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        answers_formset = context.get('answers_formset')
+        if self.request.method == 'GET':
+            question_formset = TestQuestionFormSet()
+            answer_formset = answers_formset()
+        else:
+            question_formset = TestQuestionFormSet(self.request.POST)
+            answer_formset = answers_formset(self.request.POST)
+        mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, formset=question_formset,
+                                    formset2=answer_formset)
+        return context | mix
 
     def form_valid(self, form):
         context = self.get_context_data()
@@ -454,7 +472,9 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
 
 
-
 def logout_user(request):
     logout(request)
     return redirect('search_test')
+
+def page_forbidden_error(request, exception):
+    return HttpResponseForbidden('<h1>try more</h1>')

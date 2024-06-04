@@ -9,68 +9,68 @@
     <script src="{% static 'tests/js/test_advanced_search.js' %}"></script>
 {% endblock %}
 {% block content %}
-    <div class="section__tests">
-        <div class="tests__field">
-            <div class="filters__field">
-                <input id="advanced_search_button" type="checkbox">
-                <div class="test__filtration">
-                    <label for="advanced_search_button" class="test__advanced_search">advanced search</label>
-                    <div class="filtration__footer"></div>
-                </div>
-                <div class="filtration__field">
-                    <div class="field__advanced_search">
-                        <span class="bunch__hedge__top"></span>
-                        <div class="bunch__header">
-                            <div>Criterion</div>
-                            <div id="criterion__reset" class="advanced_search__reset">reset</div>
-                        </div>
-                        <div class="bunch__selection" id="selection__criterion">
-                            {% for criterion in criterions %}
-                            <label class="selection__item">
-                                <input type="radio" name="select_criterion" value="{{ criterion.0 }}">
-                                <div class="item__choice">{{ criterion.1 }}</div>
-                            </label>
-                            {% endfor %}
-                        </div>
-                        <div class="bunch__header">
-                            <div>Sorted by</div>
-                            <div id="sorting__reset" class="advanced_search__reset">reset</div>
-                        </div>
-                        <div class="bunch__selection" id="selection__sorting">
-                            {% for sorting in sortings %}
-                            <label class="selection__item">
-                                <input type="radio" name="select_sorting" value="{{ sorting.0 }}">
-                                <div class="item__choice">{{ sorting.1 }}</div>
-                            </label>
-                            {% endfor %}
-                        </div>
-                        <div class="bunch__header">
-                            <div>Category</div>
-                            <div id="category__reset" class="advanced_search__reset">reset</div>
-                        </div>
-                        <div class="bunch__selection" id="selection__category">
-                            {% for category in categories %}
-                            <label class="selection__item">
-                                <input type="radio" name="select_category" value="{{ category.0 }}">
-                                <div class="item__choice">{{ category.1 }}</div>
-                            </label>
-                            {% endfor %}
-                        </div>
-                        <span class="bunch__hedge_bottom"></span>
-                        <div class="advanced_search__footer">
-                            <label for="advanced_search_button" class="cancel__button">cancle</label>
-                            <div class="submit__button" id="submit__button">submin</div>
+    <div class="section">
+        <div class="main__field">
+            <div class="test__field">
+                <div class="filters__field">
+                    <input id="advanced_search_button" type="checkbox">
+                    <div class="test__filtration">
+                        <label for="advanced_search_button" class="test__advanced_search">advanced search</label>
+                        <div class="filtration__footer"></div>
+                    </div>
+                    <div class="filtration__field">
+                        <div class="field__advanced_search">
+                            <span class="bunch__hedge__top"></span>
+                            <div class="bunch__header">
+                                <div>Criterion</div>
+                                <div id="criterion__reset" class="advanced_search__reset">reset</div>
+                            </div>
+                            <div class="bunch__selection" id="selection__criterion">
+                                {% for criterion in criterions %}
+                                <label class="selection__item">
+                                    <input type="radio" name="select_criterion" value="{{ criterion.0 }}">
+                                    <div class="item__choice">{{ criterion.1 }}</div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <div class="bunch__header">
+                                <div>Sorted by</div>
+                                <div id="sorting__reset" class="advanced_search__reset">reset</div>
+                            </div>
+                            <div class="bunch__selection" id="selection__sorting">
+                                {% for sorting in sortings %}
+                                <label class="selection__item">
+                                    <input type="radio" name="select_sorting" value="{{ sorting.0 }}">
+                                    <div class="item__choice">{{ sorting.1 }}</div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <div class="bunch__header">
+                                <div>Category</div>
+                                <div id="category__reset" class="advanced_search__reset">reset</div>
+                            </div>
+                            <div class="bunch__selection" id="selection__category">
+                                {% for category in categories %}
+                                <label class="selection__item">
+                                    <input type="radio" name="select_category" value="{{ category.0 }}">
+                                    <div class="item__choice">{{ category.1 }}</div>
+                                </label>
+                                {% endfor %}
+                            </div>
+                            <span class="bunch__hedge_bottom"></span>
+                            <div class="advanced_search__footer">
+                                <label for="advanced_search_button" class="cancel__button">cancle</label>
+                                <div class="submit__button" id="submit__button">submin</div>
+                            </div>
                         </div>
                     </div>
+                    <div class="hidden__field"></div>
                 </div>
-                <div class="hidden__field"></div>
-            </div>
-            <div class="test__list">
-                {% if tests %}
-                {% for test in tests %}
-                <div class="test__cell">
-                    <a href="{{ test.get_absolute_url }}" id="{{ test.id }}" class="test__item">
-                        <div class="item__avatar">
+                <div class="test__list">
+                    {% if tests %}
+                    {% for test in tests %}
+                    <div class="test__cell">
+                        <a href="{{ test.get_absolute_url }}" id="{{ test.id }}" class="test__item">
                             {% if test.category == 1 %}
                             <svg class="svg__test_preview">
                                 <use xlink:href="#icon_intelligence"></use>
@@ -92,49 +92,50 @@
                                 <use xlink:href="#icon_emotional"></use>
                             </svg>
                             {% endif %}
-                        </div>
-                        <div class="item__preview">{{ test.preview }}</div>
-                        <div class="item__reputation"></div>
-                        <div class="item__status" id="{{ test.id }}">
-                            {% if test.is_completed %}
-                            <svg class="svg__test_status">
-                                <use xlink:href="#icon_test_completed"></use>
-                            </svg>{% endif %}
-                        </div>
-                    </a>
-                </div>
-                {% endfor %}
-                {% else %}
-                    <div class="empty__result">
-                        <div class="empty__item__header">No results found</div>
-                        <div class="empty__item">Try adjusting your filter options to find what you are looking for</div>
+                            <div class="item__preview">{{ test.preview }}</div>
+                            <div class="item__reputation"></div>
+                            <div class="item__status" id="{{ test.id }}">
+                                {% if test.is_completed %}
+                                <svg class="svg__test_status">
+                                    <use xlink:href="#icon_test_completed"></use>
+                                </svg>
+                                {% endif %}
+                            </div>
+                        </a>
                     </div>
-                {% endif %}
-            </div>
-            {% if page_obj.has_other_pages %}
-            <div class="partition">
-                <div class="partition__big partition__wide"></div>
-            </div>
-            <div class="pagination">
-                {% if page_obj.has_previous %}
-                    <a href="?{{ modified_get.urlencode }}&page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
-                {% else %}
-                    <a class="pagination__unclickable"><</a>
-                {% endif %}
-                {% for p in page_obj.paginator.page_range %}
-                    {% if page_obj.number == p %}
-                        <a class="pagination__current">{{ p }}</a>
-                    {% elif p >= page_obj.number|add:-4 and p <= page_obj.number|add:4 %}
-                        <a href="?{{ modified_get.urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
+                    {% endfor %}
+                    {% else %}
+                        <div class="empty__result">
+                            <div class="empty__item__header">No results found</div>
+                            <div class="empty__item">Try adjusting your filter options to find what you are looking for</div>
+                        </div>
                     {% endif %}
-                {% endfor %}
-                {% if page_obj.has_next %}
-                    <a href="?{{ modified_get.urlencode }}&page={{ page_obj.next_page_number }}" class="pagination__clickable">></a>
-                {% else %}
-                    <a class="pagination__unclickable">></a>
+                </div>
+                {% if page_obj.has_other_pages %}
+                <div class="partition">
+                    <div class="partition__big partition__wide"></div>
+                </div>
+                <div class="pagination">
+                    {% if page_obj.has_previous %}
+                        <a href="?{{ modified_get.urlencode }}&page={{ page_obj.previous_page_number }}" class="pagination__clickable"><</a>
+                    {% else %}
+                        <a class="pagination__unclickable"><</a>
+                    {% endif %}
+                    {% for p in page_obj.paginator.page_range %}
+                        {% if page_obj.number == p %}
+                            <a class="pagination__current">{{ p }}</a>
+                        {% elif p >= page_obj.number|add:-4 and p <= page_obj.number|add:4 %}
+                            <a href="?{{ modified_get.urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <a href="?{{ modified_get.urlencode }}&page={{ page_obj.next_page_number }}" class="pagination__clickable">></a>
+                    {% else %}
+                        <a class="pagination__unclickable">></a>
+                    {% endif %}
+                </div>
                 {% endif %}
             </div>
-            {% endif %}
         </div>
     </div>
 {% endblock %}

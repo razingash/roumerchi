@@ -306,10 +306,13 @@ def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uui
                                                   profile_uuid=profile_uuid, visitor_uuid=visitor_uuid, is_guest=is_guest)
         raise CustomException('something went wrong')
 
-
+@custom_exception(expected_return=None)
 def get_question_answers_formset(user_id):
     answers_amount = Test.objects.prefetch_related('testcriterion_set').filter(author_id=user_id, status=1)
-    answers_amount = answers_amount.last().testcriterion_set.count()
+    try:
+        answers_amount = answers_amount.last().testcriterion_set.count()
+    except AttributeError as e:
+        raise CustomException(f'Yellow Exception in get_question_answers_formset(). someone tried to create questions without test: {e}')
     formset = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0,
                                           min_num=answers_amount, max_num=answers_amount)
     return formset
@@ -343,7 +346,7 @@ def calculate_test_result(test_id, answers): # добавить проверку
         result = TestUniqueResult.objects.filter(test_id=test_id, points_min__lte=points, points_max__gte=points)
         if result.exists():
             return result[0], true_answers, criterions
-    raise Exception('something get wrong')
+    raise Exception('something get wrong, probably test was generated incorrectly')
 
 def create_new_test_respondent(sender_id, test_id, result, answers: list, is_guest: bool): # both users and guests
     if is_guest: # for guest
