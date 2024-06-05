@@ -20,6 +20,9 @@ from tests.utils import DataMixin
 
 # Create your views here.
 
+def page_forbidden_error(request, exception):
+    return HttpResponseForbidden('<h1>try more</h1>')
+
 class RegistrationPageView(CreateView, DataMixin):
     form_class = RegisterCustomUserForm
     template_name = 'tests/register.html'
@@ -284,7 +287,7 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/create_test_questions.html'
     form_class = TestQuestionFormSet
 
-    @custom_exception(expected_return=HttpResponseForbidden)
+    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
     def get(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             answers_formset = get_question_answers_formset(self.request.user.id)
@@ -292,9 +295,9 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
                 return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
             context = self.get_context_data(answers_formset=answers_formset)
             return self.render_to_response(context)
-        raise CustomException('Black Error: in CreateTestQuestions someone gained access without authorization')
+        raise CustomException('Green Error: in CreateTestQuestions someone tried to gain access without authorization', error_type=1)
 
-    @custom_exception(expected_return=HttpResponseForbidden)
+    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
     def post(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             answers_formset = get_question_answers_formset(self.request.user.id)
@@ -302,7 +305,7 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
                 return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
             context = self.get_context_data(answers_formset=answers_formset)
             return self.render_to_response(context)
-        raise CustomException('Black Error: in CreateTestQuestions someone tried POST request without authorization')
+        raise CustomException('Black Error: in CreateTestQuestions someone tried POST request without authorization', error_type=4)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -351,10 +354,30 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/change_test.html'
     form_class = TestForm
 
+    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    def get(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            test_obj = self.get_object()
+            if self.request.user == test_obj.author:
+                context = self.get_context_data(test_obj=test_obj)
+                return self.render_to_response(context)
+            raise CustomException('Green Error: in ChangeTestInfo someone tried to gain access without authorization', error_type=1)
+        raise CustomException('Green Error: in ChangeTestInfo someone tried to gain access without authorization', error_type=1)
+
+    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    def post(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            test_obj = self.get_object()
+            if self.request.user == test_obj.author:
+                context = self.get_context_data(test_obj=test_obj)
+                return self.render_to_response(context)
+            raise CustomException(f'Black Error: in ChangeTestInfo user: {self.request.user.uuid} tried POST without being the author', error_type=4)
+        raise CustomException('Black Error: in ChangeTestInfo someone tried POST request without authorization', error_type=4)
+
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
-            test_obj = self.get_object()
+            test_obj = context.get('test_obj')
 
             if self.request.method == 'GET':
                 criterions_forms = TestCriterionFormSet(instance=test_obj)
@@ -397,6 +420,26 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/change_test_questions.html'
     form_class = TestForm
     paginate_by = 1
+
+    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    def get(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            test_obj = self.get_object()
+            if self.request.user == test_obj.author:
+                context = self.get_context_data(test_obj=test_obj)
+                return self.render_to_response(context)
+            raise CustomException('Green Error: in ChangeTestQuestions someone tried to gain access without authorization', error_type=1)
+        raise CustomException('Green Error: in ChangeTestQuestions someone tried to gain access without authorization', error_type=1)
+
+    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    def post(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            test_obj = self.get_object()
+            if self.request.user == test_obj.author:
+                context = self.get_context_data(test_obj=test_obj)
+                return self.render_to_response(context)
+            raise CustomException(f'Black Error: in ChangeTestQuestions user: {self.request.user.uuid} tried POST without being the author', error_type=4)
+        raise CustomException('Black Error: in ChangeTestQuestions someone tried POST request without authorization', error_type=4)
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -475,6 +518,3 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
 def logout_user(request):
     logout(request)
     return redirect('search_test')
-
-def page_forbidden_error(request, exception):
-    return HttpResponseForbidden('<h1>try more</h1>')

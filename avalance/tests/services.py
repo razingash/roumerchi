@@ -12,8 +12,9 @@ from tests.models import CustomUser, Test, Respondent, Response, RespondentResul
 
 
 class CustomException(Exception):
-    def __init__(self, message):
+    def __init__(self, message, error_type=None):
         super().__init__(message)
+        self.error_type = error_type
 
 def custom_exception(expected_return=None, *return_args, **return_kwargs): # overwhelming
     def decorator(func: callable):
@@ -22,7 +23,8 @@ def custom_exception(expected_return=None, *return_args, **return_kwargs): # ove
                 return func(*args, **kwargs)
             except CustomException as e:
                 print(f"Error: {e}")
-                send_message(error_message=e)
+                if e.error_type > 2:
+                    send_message(error_message=e)
                 if callable(expected_return):
                     return expected_return(*args, **kwargs)
                 if return_args or return_kwargs:
@@ -305,7 +307,7 @@ def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uui
         if CustomUser.objects.filter(uuid=visitor_uuid).exists():
             return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
                                                   profile_uuid=profile_uuid, visitor_uuid=visitor_uuid, is_guest=is_guest)
-        raise CustomException('something went wrong')
+        raise CustomException('something went wrong', error_type=5)
 
 @custom_exception(expected_return=None)
 def get_question_answers_formset(user_id):
@@ -328,7 +330,7 @@ def get_question_answer_counter(user_id):
 
 def calculate_test_result(test_id, answers): # добавить проверку на неравенство списков вопросов
     if type(answers) is not list:
-        raise CustomException('Red error: answers in create_new_test_respondent() must be list instance')
+        raise CustomException('Red error: answers in create_new_test_respondent() must be list instance', error_type=3)
     questions = TestQuestion.objects.prefetch_related('question__testquestion_set__questionanswerchoice_set').filter(test_id=test_id)
     if questions.exists():
         k = 0
@@ -390,7 +392,7 @@ def create_new_test_respondent(sender_id, test_id, result, answers: list, is_gue
 @custom_exception(result_1=None, result2=None)
 def create_new_test_walkthrough(sender_uuid, test_id, answers, is_guest: bool):
     if type(answers) is not list:
-        raise CustomException('Red error: answers in create_new_test_respondent() must be list instance')
+        raise CustomException('Red error: answers in create_new_test_respondent() must be list instance', error_type=3)
     if type(is_guest) is not bool:
         is_guest = False
     if is_guest: # for guests
