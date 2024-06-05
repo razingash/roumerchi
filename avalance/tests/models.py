@@ -22,11 +22,10 @@ class TestCategories(models.IntegerChoices):
 
 class TestStatuses(models.IntegerChoices):
     UNDERWAY = 1, 'underway' # in progress
-    VERIFICATION = 2, 'awaiting verification'  # link unaviable, moderation forbidden
-    VISIBLE = 3, 'visible' # link and walkthrough are aviable
-    FREEZED = 4, 'freezed'  # link aviable, test closed moderation forbidden | author can set up this state
-    INVISIBLE = 5, 'invisible' # link aviable, test moderation and walkthrough 403 | this state is setted up due to huge amount of complaint
-    BANNED = 6, 'banned'  # link unaviable 404, test closed by admin
+    VERIFICATION = 2, 'awaiting verification'  # link unavailable, moderation forbidden
+    VISIBLE = 3, 'visible' # link and walkthrough are available
+    INVISIBLE = 4, 'invisible' # link available, test moderation unavailable| this state is setted up due to huge amount of complaint
+    BANNED = 5, 'banned'  # link unavailable 404, test closed by admin
 
 class CriterionFilters(models.IntegerChoices):
     COMPLETED = 1, 'completed'

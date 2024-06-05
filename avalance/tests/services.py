@@ -155,13 +155,14 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
     test_visitor_contact = {is_test_completed: visitor_id}
     model_filter = {filter_by_visitor: visitor_id}
     filters = Q()
+    filters &= Q(status=3)
     is_completed = Max(Case(When(**test_visitor_contact, then=True), default=False))  # annotation to mark completed tests
 
     if visitor_id is None:
         is_completed = Case(default=False)
 
     if criterion is None and sorting is None and category is None and profile_uuid is None:
-        tests = Test.objects.annotate(is_completed=is_completed).order_by('-id')
+        tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('-id')
         return tests
 
     if profile_uuid is not None:
@@ -345,6 +346,7 @@ def calculate_test_result(test_id, answers): # добавить проверку
         print(criterions)
         result = TestUniqueResult.objects.filter(test_id=test_id, points_min__lte=points, points_max__gte=points)
         if result.exists():
+            print(6)
             return result[0], true_answers, criterions
     raise Exception('something get wrong, probably test was generated incorrectly')
 
@@ -420,3 +422,73 @@ def validate_paginator_get_attribute(page_number):
     page_number = 0 if page_number < 0 else page_number
     return page_number
 
+def unique_result_points_validation(points, criterions_amount):
+    points = [item for i in points for item in i]
+    points.sort()
+    final_points = []
+
+    if points[0] != 0:
+        points[0] = 0
+
+    k = 0
+    while k < len(points) - 1:
+        minimum = points[k]
+        maximum = points[k + 1]
+
+        if k > 0 and minimum <= final_points[-1][-1]:
+            minimum = final_points[-1][-1] + 1
+            if maximum <= minimum:
+                if minimum - maximum == 1:
+                    maximum += 1
+                else:
+                    maximum += minimum
+        elif minimum > maximum:
+            maximum += minimum
+        elif minimum <= maximum:
+            maximum += minimum
+
+        final_points.append([minimum, maximum])
+        k += 1
+
+    if len(final_points) < criterions_amount:
+        raise CustomException('Yellow ValidationError: test created by user was incorrectly generated - questions != criterions')
+    elif len(final_points) >= criterions_amount:
+        final_points = final_points[:criterions_amount]
+    final_points[-1][-1] = 32767
+
+    return final_points
+
+def validate_test_questions(test):
+    questions = TestQuestion.objects.prefetch_related('question__testquestion_set__questionanswerchoice_set').filter(test=test)
+    if questions.exists():
+        questions_weight = []
+        for i, question in enumerate(questions):
+            questions_weight.append(list())
+            for answer_to_question in question.questionanswerchoice_set.all():
+                questions_weight[i].append(answer_to_question.weight)
+        if test.questions_amount != questions.count:
+            test.questions_amount = questions.count()
+            test.save()
+        print(questions_weight)
+        return questions_weight
+    else:
+        raise CustomException('Yellow ValidationError: test created by user was incorrectly generated - questions != criterions')
+
+@custom_exception(expected_return=False)
+def validate_test_created_by_user(test):
+    t = Test.objects.prefetch_related('testuniqueresult_set', 'testcriterion_set').get(id=1)
+
+    print(type(test.questions_amount))
+    #answers points validation
+    unique_results = t.testuniqueresult_set.all()
+    criterions_amount = t.testcriterion_set.count()
+    points = []
+    for unique_result in unique_results:
+        points.extend([unique_result.points_min, unique_result.points_max])
+
+    validated_results_points = unique_result_points_validation(points, criterions_amount)
+
+    # results points validation
+    validated_questions = validate_test_questions(test=test)
+    print(validated_results_points, validated_questions)
+    return True
