@@ -4,36 +4,15 @@ from django.db import transaction
 from django import forms
 from django.db.models import Count, Q, When, Case, Max
 
+from tests.exceptions import CustomException, log_and_notify_decorator
 from tests.forms import TestQuestionAnswersForm
-from tests.management.commands.bot import send_message
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
     TestCriterion, QuestionAnswerChoice, TestCategories, CriterionFilters, SortingFilters, Guest, GuestRespondent, \
     GuestResponse, GuestRespondentResult
 
 
-class CustomException(Exception):
-    def __init__(self, message, error_type=None):
-        super().__init__(message)
-        self.error_type = error_type
 
-def custom_exception(expected_return=None, *return_args, **return_kwargs): # overwhelming
-    def decorator(func: callable):
-        def wrapper(*args, **kwargs):
-            try:
-                return func(*args, **kwargs)
-            except CustomException as e:
-                print(f"Error: {e}")
-                if e.error_type > 2:
-                    send_message(error_message=e)
-                if callable(expected_return):
-                    return expected_return(*args, **kwargs)
-                if return_args or return_kwargs:
-                    return return_args, return_kwargs
-                return expected_return
-        return wrapper
-    return decorator
-
-@custom_exception(expected_return=0)
+@log_and_notify_decorator(expected_return=0)
 def to_int(value):
     try:
         value = int(value)
@@ -46,13 +25,13 @@ def to_int(value):
 def get_test_categories():
     return TestCategories.choices
 
-@custom_exception(expected_return=None)
+@log_and_notify_decorator(expected_return=None)
 def get_user_id(user_uuid):
     user = CustomUser.objects.only('id').filter(uuid=user_uuid).first().id
     if user:
         return user
     else:
-        raise CustomException(f'Impossible error in get_user_id(): {get_user_id}')
+        raise CustomException(f'Impossible error in get_user_id(): {user_uuid}')
 
 def get_guest(guest__uuid): # don't check this because it should be possible
     try:
@@ -62,9 +41,9 @@ def get_guest(guest__uuid): # don't check this because it should be possible
         return None
     else:
         if Guest.objects.filter(uuid=guest__uuid).exists():
-            return Guest.objects.get(uuid=guest__uuid)
+            return Guest.objects.only('id', 'uuid').get(uuid=guest__uuid)
         else:
-            guest = Guest.objects.create(uuid=guest__uuid)
+            guest = Guest.objects.only('id', 'uuid').create(uuid=guest__uuid)
             return guest
 
 def get_profile_info(profile_uuid):
@@ -72,8 +51,21 @@ def get_profile_info(profile_uuid):
 
 def get_test_info_by_slug(test_slug):
     queryset = Test.objects.prefetch_related('testcriterion_set', 'testquestion_set', 'testquestion_set__questionanswerchoice_set')
+    queryset = queryset.only('id', 'preview', 'description', 'questions_amount', 'grade', 'reputation')
     queryset = queryset.filter(preview_slug=test_slug)
     return queryset
+
+def get_permission_for_creating_test(user):
+    permission = Test.objects.filter(author=user, status=1)
+    if permission.exists(): # redirect to changing test page
+        return permission.only('id', 'preview_slug').last()
+    return False
+
+def get_permission_for_creating_test_questions(user):
+    permission = Test.objects.filter(author=user, status=1)
+    if permission.exists() and permission.last().questions_amount < 150: # redirect to create test questions  page
+        return True
+    return False
 
 
 def get_test_results(test, user):
@@ -103,7 +95,8 @@ def get_test_results_for_guest(test, guest_uuid):
     except ValueError:
         return None
     guest = get_guest(guest__uuid=guest_uuid)
-    respondent = GuestRespondent.objects.prefetch_related('guestrespondentresult_set', 'guestresponse_set').filter(guest=guest, test=test, is_completed=True)
+    respondent = GuestRespondent.objects.prefetch_related('guestrespondentresult_set', 'guestresponse_set')
+    respondent = respondent.filter(guest=guest, test=test, is_completed=True)
     if respondent.exists():
         respondent = respondent[0]
         if respondent.guestrespondentresult_set.exists():
@@ -116,7 +109,6 @@ def get_test_results_for_guest(test, guest_uuid):
                     results[criterion] += 1
                 else:
                     results[criterion] = 1
-            print(results)
 
             return results
     return False
@@ -274,7 +266,7 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
             tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('publication_date')
         return tests
 
-@custom_exception(expected_return=lambda *args, **kwargs: get_filtered_tests_for_visitor(kwargs['criterion'], kwargs['sorting'], kwargs['category'], kwargs['is_guest']))
+@log_and_notify_decorator(expected_return=lambda *args, **kwargs: get_filtered_tests_for_visitor(kwargs['criterion'], kwargs['sorting'], kwargs['category'], kwargs['is_guest']))
 def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None): # add all validators here
     if visitor_uuid is not None and is_guest:
         try:
@@ -301,15 +293,17 @@ def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uui
             category = None
     print(criterion, sorting, category, visitor_uuid, profile_uuid)
     if is_guest:
-        return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category, is_guest=is_guest,
-                                              visitor_uuid=visitor_uuid, profile_uuid=profile_uuid)
+        return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
+                                              is_guest=is_guest, visitor_uuid=visitor_uuid,
+                                              profile_uuid=profile_uuid).only('id', 'category', 'preview', 'preview_slug')
     else:
         if CustomUser.objects.filter(uuid=visitor_uuid).exists():
             return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
-                                                  profile_uuid=profile_uuid, visitor_uuid=visitor_uuid, is_guest=is_guest)
+                                                  profile_uuid=profile_uuid, visitor_uuid=visitor_uuid,
+                                                  is_guest=is_guest).only('id', 'category', 'preview', 'preview_slug')
         raise CustomException('something went wrong', error_type=5)
 
-@custom_exception(expected_return=None)
+@log_and_notify_decorator(expected_return=None)
 def get_question_answers_formset(user_id):
     answers_amount = Test.objects.prefetch_related('testcriterion_set').filter(author_id=user_id, status=1)
     try:
@@ -328,9 +322,7 @@ def get_question_answer_counter(user_id):
     return count
 
 
-def calculate_test_result(test_id, answers): # добавить проверку на неравенство списков вопросов
-    if type(answers) is not list:
-        raise CustomException('Red error: answers in create_new_test_respondent() must be list instance', error_type=3)
+def calculate_test_result(test_id, answers):
     questions = TestQuestion.objects.prefetch_related('question__testquestion_set__questionanswerchoice_set').filter(test_id=test_id)
     if questions.exists():
         k = 0
@@ -348,9 +340,8 @@ def calculate_test_result(test_id, answers): # добавить проверку
         print(criterions)
         result = TestUniqueResult.objects.filter(test_id=test_id, points_min__lte=points, points_max__gte=points)
         if result.exists():
-            print(6)
             return result[0], true_answers, criterions
-    raise Exception('something get wrong, probably test was generated incorrectly')
+    raise CustomException('Yellow Erorr: something get wrong, probably test was generated incorrectly')
 
 def create_new_test_respondent(sender_id, test_id, result, answers: list, is_guest: bool): # both users and guests
     if is_guest: # for guest
@@ -389,7 +380,7 @@ def create_new_test_respondent(sender_id, test_id, result, answers: list, is_gue
         return result.result
 
 @transaction.atomic
-@custom_exception(result_1=None, result2=None)
+@log_and_notify_decorator(result_1=None, result2=None)
 def create_new_test_walkthrough(sender_uuid, test_id, answers, is_guest: bool):
     if type(answers) is not list:
         raise CustomException('Red error: answers in create_new_test_respondent() must be list instance', error_type=3)
@@ -415,7 +406,7 @@ def create_new_test_walkthrough(sender_uuid, test_id, answers, is_guest: bool):
     raise CustomException("test doesn't exist")
 
 
-@custom_exception(expected_return=0)
+@log_and_notify_decorator(expected_return=0)
 def validate_paginator_get_attribute(page_number):
     try:
         page_number = int(page_number or 1) - 1
@@ -476,7 +467,7 @@ def validate_test_questions(test):
     else:
         raise CustomException('Yellow ValidationError: test created by user was incorrectly generated - questions != criterions')
 
-@custom_exception(expected_return=False)
+@log_and_notify_decorator(expected_return=False)
 def validate_test_created_by_user(test):
     t = Test.objects.prefetch_related('testuniqueresult_set', 'testcriterion_set').get(id=1)
 

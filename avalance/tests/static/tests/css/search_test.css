@@ -172,6 +172,9 @@
 .item__reputation {
     position: absolute;
 }
+.item__change {
+
+}
 
 .item__status {
     position: absolute;

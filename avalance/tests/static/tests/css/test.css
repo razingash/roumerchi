@@ -48,8 +48,11 @@
     justify-content: flex-end;
     margin-right: 30px;
 }
+.change_modification {
+    justify-content: space-between;
+}
 
-.button__start {
+.button__start, .button__change {
     color: var(--color-white);
     cursor: pointer;
     padding: 2px 8px 2px 8px;
@@ -82,11 +85,11 @@
     flex-direction: column;
     flex-grow: 1;
     margin-right: 8px;
-    min-width: 400px;
 }
 
 .diagram__item {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
     margin: 7px 8px 7px 4px;
 }

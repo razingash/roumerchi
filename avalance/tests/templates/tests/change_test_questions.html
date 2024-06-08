@@ -3,6 +3,7 @@
 {% load static %}
 {% block additional_css %}
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/create_test.css' %}">
+    <link type="text/css" rel="stylesheet" href="{% static 'tests/css/search_test.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -12,8 +13,32 @@
             <a href="{% url 'create_test_questions' %}" class="identification__item">Create Questions</a>
             <a href="{% url 'change_test' preview_slug %}" class="identification__item">Change test</a>
         </div>
+        <div class="pagination__field">
+        {% if question_page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if question_page_obj.has_previous %}
+                    <a href="?page={{ question_page_obj.previous_page_number }}" class="pagination__clickable"><</a>
+                {% else %}
+                    <a class="pagination__unclickable"><</a>
+                {% endif %}
+                {% for p in question_page_obj.paginator.page_range %}
+                    {% if question_page_obj.number == p %}
+                        <a href="?page={{ p }}" class="pagination__current">{{ p }}</a>
+                    {% elif p >= question_page_obj.number|add:-5 and p <= question_page_obj.number|add:5 %}
+                        <a href="?page={{ p }}" class="pagination__clickable">{{ p }}</a>
+                    {% endif %}
+                {% endfor %}
+                {% if question_page_obj.has_next %}
+                    <a href="?page={{ question_page_obj.next_page_number }}" class="pagination__clickable">></a>
+                {% else %}
+                    <a class="pagination__unclickable">></a>
+                {% endif %}
+            </div>
+        {% endif %}
+        </div>
         <form class="form__test" method="post" enctype="multipart/form-data">
             {% csrf_token %}
+            <div class="invisible">
             {% for f in form %}
                 <div class="form__row">
                     <div class="form__field">
@@ -22,6 +47,7 @@
                     <div class="form-errors">{{ f.errors }}</div>
                 </div>
             {% endfor %}
+            </div>
             {{ question_management_form }}
             {% for form in questions_forms %}
                 {% for f in form %}
@@ -59,27 +85,6 @@
             <div class="from-error">{{ form.non_field_errors }}</div>
             <button type="submit" class="button__submit">submit</button>
         </form>
-        {% if question_page_obj.has_other_pages %}
-            <div class="pagination__profile">
-                {% if question_page_obj.has_previous %}
-                    <a href="?page={{ question_page_obj.previous_page_number }}" class="pagination__link link__clickable"><</a>
-                {% else %}
-                    <a class="pagination__link link__unclickable"><</a>
-                {% endif %}
-                {% for p in question_page_obj.paginator.page_range %}
-                    {% if question_page_obj.number == p %}
-                        <a href="?page={{ p }}" class="pagination__link link-selected">{{ p }}</a>
-                    {% elif p >= question_page_obj.number|add:-15 and p <= question_page_obj.number|add:15 %}
-                        <a href="?page={{ p }}" class="pagination__link">{{ p }}</a>
-                    {% endif %}
-                {% endfor %}
-                {% if question_page_obj.has_next %}
-                    <a href="?page={{ question_page_obj.next_page_number }}" class="pagination__link link__clickable">></a>
-                {% else %}
-                    <a class="pagination__link link__unclickable">></a>
-                {% endif %}
-            </div>
-        {% endif %}
     </div>
 </div>
 {% endblock content %}

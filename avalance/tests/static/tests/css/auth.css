@@ -27,12 +27,12 @@
     border-top: 2px solid #000;
     border-left: 2px solid #000;
     border-right: 2px solid #000;
-    /* border-bottom: 1px solid #000; */
     font-family: roboto, serif;
     font-size: 2em;
     font-weight: 900;
     letter-spacing: 0.5px;
     color: #fff;
+    user-select: none;
 }
 
 .identification__list {
@@ -54,6 +54,7 @@
     position: absolute;
     left: 10px;
     top: 2px;
+    user-select: none;
 }
 
 .identification__hot {

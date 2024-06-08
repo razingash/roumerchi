@@ -8,13 +8,15 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import DetailView, ListView, CreateView, FormView
 
+from tests.exceptions import CustomException, log_and_notify_decorator, log_decorator
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
     TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
-    get_test_results, get_test_results_for_guest, custom_exception, CustomException
+    get_test_results, get_test_results_for_guest, get_permission_for_creating_test, \
+    get_permission_for_creating_test_questions
 from tests.utils import DataMixin
 
 
@@ -67,7 +69,6 @@ class SettingsBasePage(LoginRequiredMixin, DataMixin, FormView):
             return context | mix
 
     def form_valid(self, form):
-        print('form valid')
         form.save()
         return super().form_valid(form)
 
@@ -144,7 +145,7 @@ class ProfileView(DetailView, DataMixin):
 
     def get_object(self, queryset=None):
         profile_uuid = self.kwargs.get('profile_uuid')
-        queryset = get_profile_info(profile_uuid=profile_uuid)
+        queryset = get_profile_info(profile_uuid=profile_uuid).only('id', 'uuid', 'username', 'description')
         return get_object_or_404(queryset)
 
     def post(self, request, *args, **kwargs):
@@ -251,6 +252,18 @@ class CreateTest(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/create_test.html'
     form_class = TestForm
 
+    @log_decorator(expected_return=page_forbidden_error(request=None, exception=None))
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            permission = get_permission_for_creating_test(self.request.user)
+            if permission is not False:
+                return redirect(reverse_lazy('change_test', kwargs={'test_preview': permission.preview_slug}))
+            else:
+                return super().dispatch(request, *args, **kwargs)
+        if self.request.method == 'GET':
+            raise CustomException('Green Error: in CreateTest someone tried to gain access without authorization', error_type=1)
+        raise CustomException('Black Error: in CreateTest someone tried POST request without authorization', error_type=4)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
@@ -286,30 +299,26 @@ class CreateTest(LoginRequiredMixin, FormView, DataMixin):
 class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/create_test_questions.html'
     form_class = TestQuestionFormSet
+    answers_formset = None # bad example - for each request an extra attribute will be created
 
-    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
-    def get(self, request, *args, **kwargs):
+    @log_decorator(expected_return=page_forbidden_error(request=None, exception=None))
+    def dispatch(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
-            answers_formset = get_question_answers_formset(self.request.user.id)
-            if answers_formset is None:
+            permission = get_permission_for_creating_test_questions(self.request.user)
+            if permission is False:
+                return redirect(reverse_lazy('create_test_questions'))
+            self.answers_formset = get_question_answers_formset(self.request.user.id)
+            if self.answers_formset is None:
                 return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
-            context = self.get_context_data(answers_formset=answers_formset)
-            return self.render_to_response(context)
-        raise CustomException('Green Error: in CreateTestQuestions someone tried to gain access without authorization', error_type=1)
-
-    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
-    def post(self, request, *args, **kwargs):
-        if self.request.user.is_authenticated:
-            answers_formset = get_question_answers_formset(self.request.user.id)
-            if answers_formset is None:
-                return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
-            context = self.get_context_data(answers_formset=answers_formset)
-            return self.render_to_response(context)
+            return super().dispatch(request, *args, **kwargs)
+        if self.request.method == 'GET':
+            raise CustomException('Green Error: in CreateTestQuestions someone tried to gain access without authorization', error_type=1)
         raise CustomException('Black Error: in CreateTestQuestions someone tried POST request without authorization', error_type=4)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        answers_formset = context.get('answers_formset')
+        print(f'{self.request.method}: {self.answers_formset}')
+        answers_formset = self.answers_formset
         if self.request.method == 'GET':
             question_formset = TestQuestionFormSet()
             answer_formset = answers_formset()
@@ -328,7 +337,6 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         test_instance = Test.objects.get(author_id=self.request.user.id, status=1)
         criterions = TestCriterion.objects.filter(test=test_instance)
         question_formset.instance = test_instance
-
         if question_formset.is_valid() and answer_formset.is_valid():
             for question_form in question_formset:
                 question = question_form.save(commit=False)
@@ -354,7 +362,7 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
     template_name = 'tests/change_test.html'
     form_class = TestForm
 
-    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    @log_and_notify_decorator(expected_return=page_forbidden_error(request=None, exception=None))
     def get(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
@@ -364,21 +372,19 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
             raise CustomException('Green Error: in ChangeTestInfo someone tried to gain access without authorization', error_type=1)
         raise CustomException('Green Error: in ChangeTestInfo someone tried to gain access without authorization', error_type=1)
 
-    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    @log_and_notify_decorator(expected_return=page_forbidden_error(request=None, exception=None))
     def post(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
             if self.request.user == test_obj.author:
-                context = self.get_context_data(test_obj=test_obj)
-                return self.render_to_response(context)
-            raise CustomException(f'Black Error: in ChangeTestInfo user: {self.request.user.uuid} tried POST without being the author', error_type=4)
+                return super().post(request, *args, **kwargs)
+            raise CustomException(f'Dark Error: in ChangeTestInfo user: {self.request.user.uuid} tried POST without being the author',  error_type=4)
         raise CustomException('Black Error: in ChangeTestInfo someone tried POST request without authorization', error_type=4)
 
-    def get_context_data(self, *, object_list=None, **kwargs):
+    def get_context_data(self, *, object_list=None, **kwargs): # CHECK THIS
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
             test_obj = context.get('test_obj')
-
             if self.request.method == 'GET':
                 criterions_forms = TestCriterionFormSet(instance=test_obj)
                 results_forms = TestUniqueResultFormSet(instance=test_obj)
@@ -409,7 +415,7 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
 
     def get_object(self):
         test_preview = self.kwargs['test_preview']
-        return get_object_or_404(Test, preview_slug=test_preview)
+        return get_object_or_404(Test.objects.only('id', 'author_id', 'preview', 'category', 'description', 'preview_slug'), preview_slug=test_preview)
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
@@ -421,7 +427,7 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     form_class = TestForm
     paginate_by = 1
 
-    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    @log_and_notify_decorator(expected_return=page_forbidden_error(request=None, exception=None))
     def get(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
@@ -431,14 +437,13 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
             raise CustomException('Green Error: in ChangeTestQuestions someone tried to gain access without authorization', error_type=1)
         raise CustomException('Green Error: in ChangeTestQuestions someone tried to gain access without authorization', error_type=1)
 
-    @custom_exception(expected_return=page_forbidden_error(request=None, exception=None))
+    @log_and_notify_decorator(expected_return=page_forbidden_error(request=None, exception=None))
     def post(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
             if self.request.user == test_obj.author:
-                context = self.get_context_data(test_obj=test_obj)
-                return self.render_to_response(context)
-            raise CustomException(f'Black Error: in ChangeTestQuestions user: {self.request.user.uuid} tried POST without being the author', error_type=4)
+                return super().post(request, *args, **kwargs)
+            raise CustomException(f'Dark Error: in ChangeTestQuestions user: {self.request.user.uuid} tried POST without being the author', error_type=5)
         raise CustomException('Black Error: in ChangeTestQuestions someone tried POST request without authorization', error_type=4)
 
     def get_context_data(self, *, object_list=None, **kwargs):

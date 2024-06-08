@@ -8,7 +8,9 @@
 }
 
 .identification__field {
-    margin: 80px 0 20px 0;
+    display: flex;
+    flex-direction: column;
+    margin: 80px 0 0 0;
     min-width: 350px;
     max-width: 640px;
 }
@@ -26,7 +28,15 @@
     font-size: 1.5em;
     font-weight: 900;
 }
+.identification__hot {
+    color: #fff;
+}
+.identification__hot:hover {
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
+}
+.identification__cold {
 
+}
 .nulifying {
     padding: 5px 0 0 0;
     font-family: initial;
@@ -43,6 +53,16 @@
 .identification__item:hover {
     box-shadow: 0 1px 10px 3px rgba(0, 0, 0, 0.4);
     color: #ffe843;
+}
+
+.pagination__field {
+    background: var(--containers-background);
+    border-left: 2px solid var(--color-black);
+    border-right: 2px solid var(--color-black);
+    border-bottom: 2px solid var(--color-black);
+}
+.invisible {
+    display: none;
 }
 
 .form__test {
@@ -101,10 +121,38 @@
 .info{
     display: flex;
     justify-content: center;
+    text-align: center;
 }
 
-.button__create {
-
+.button__add {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    background: black;
+    color: white;
+    font-family: sans-serif;
+    font-weight: 600;
+    font-size: 2em;
+    padding: 5px;
+    border-radius: 5px;
+}
+.span__minus {
+    display: block;
+    width: 14px;
+    height: 4px;
+    background: #ffffff;
+}
+.button__delete {
+    position: absolute;
+    right: 15px;
+    bottom: 5px;
+    background: #000000;
+    padding: 8px 3px 8px 3px;
+    border-radius: 5px;
+    cursor: pointer;
 }
 
 .form__textarea, .form__input {
@@ -149,10 +197,24 @@
         border-radius: initial;
         border-left: initial;
         border-right: initial;
+        font-size: initial;
+        padding: 5px 0 5px 0;
     }
     .identification__field {
         margin-top: 60px;
         min-width: initial;
+    }
+    .pagination__field {
+        border-left: initial;
+        border-right: initial;
+    }
+    .pagination {
+        margin-top: 5px !important;
+        padding-bottom: 3px !important;
+    }
+    .pagination > a {
+        padding: 0 6px 0 6px !important;
+        margin: 0 4px 0 4px !important;
     }
 
     .test__section {

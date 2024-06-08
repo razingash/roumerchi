@@ -21,7 +21,7 @@
 }
 
 .username {
-    margin-right: 28px;
+    margin: 0 28px 0 10px;
 }
 
 .description {
@@ -33,12 +33,20 @@
     top: 4px;
     right: 5px;
 }
+.profile__new_test {
+    position: absolute;
+    left: 5px;
+    top: 5px;
+}
 .svg__gear {
     width: 23px;
     height: 23px;
 }
 
-
+.svg__cross {
+    width: 23px;
+    height: 23px;
+}
 
 .profile__bar {
     margin-top: 15px;

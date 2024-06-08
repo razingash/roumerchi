@@ -10,7 +10,10 @@
 {% block content %}
 <div class="section__identification">
     <div class="identification__field">
-        <div class="identification__header"></div>
+        <div class="identification__header">
+            <div class="identification__cold">Test</div>
+            <a href="{% url 'create_test_questions' %}" class="identification__hot">Questions</a>
+        </div>
         <form class="form__test" method="post">
             {% csrf_token %}
             {% for f in form %}
@@ -23,8 +26,8 @@
             {% endfor %}
             <div class="hedge__info">
                 <div class="info">the number of criteries must be equal to the number of answers for one question</div>
-                <button type="button" class="button__create" id="add_criterion_button">add new criterion</button>
-                <button type="button" class="button__delete" id="delete_criterion_button">delete</button>
+                <div class="button__add" id="add_criterion_button">+</div>
+                <div class="button__delete" id="delete_criterion_button"><span class="span__minus"></span></div>
             </div>
             {{ formset.management_form }}
             <div id="criterions_formset">
@@ -45,8 +48,8 @@
             <div class="from-error">{{ form.non_field_errors }}</div>
             <div class="hedge__info">
                 <div class="info">the content of unique results for specific limits can be changed after the test is created</div>
-                <button type="button" class="button__create" id="add_result_button">add unique result</button>
-                <button type="button" class="button__delete" id="delete_result_button">delete</button>
+                <div class="button__add" id="add_result_button">+</div>
+                <div class="button__delete" id="delete_result_button"><span class="span__minus"></span></div>
             </div>
             {{ formset2.management_form }}
             <div id="unique_results_formset">
