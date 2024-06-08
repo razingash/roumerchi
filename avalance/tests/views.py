@@ -16,7 +16,7 @@ from tests.models import CustomUser, Test, TestCriterion, SortingFilters, Criter
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
     get_test_results, get_test_results_for_guest, get_permission_for_creating_test, \
-    get_permission_for_creating_test_questions
+    get_permission_for_creating_test_questions, is_test_ready, validate_test_created_by_user
 from tests.utils import DataMixin
 
 
@@ -98,7 +98,6 @@ class SettingsPasswordPage(LoginRequiredMixin, PasswordChangeView, DataMixin):
     def get_success_url(self):
         user_uuid = self.request.user.uuid
         return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
-
 
 
 class ProfileView(DetailView, DataMixin):
@@ -199,7 +198,6 @@ class SearchTestsView(ListView, DataMixin):
 
     def post(self, request, *args, **kwargs):
         if request.POST.get('request_type') == 'advanced_search':
-            #underway_tests = request.POST.getlist('underway_tests[]')
             return JsonResponse({'message': 'all good'})
         else:
             return JsonResponse({'message': 'mistake'})
@@ -230,9 +228,9 @@ class TestView(DetailView, DataMixin):
         request_type = request.POST.get('request_type')
         sender_uuid = request.POST.get('sender_uuid')
         test_id = request.POST.get('test_id')
-        selected_answers = request.POST.getlist('selected_answers[]')
         if request_type == 'new_walkthrough':
             if sender_uuid is not None:
+                selected_answers = request.POST.getlist('selected_answers[]')
                 if self.request.user.is_authenticated:
                     test_result, criterions = create_new_test_walkthrough(sender_uuid=sender_uuid, test_id=test_id,
                                                                           answers=selected_answers, is_guest=False)
@@ -245,6 +243,13 @@ class TestView(DetailView, DataMixin):
                     if 'result_1' in criterions and 'result_2' in criterions:
                         return JsonResponse({'status': 400, 'message': test_result, 'criterions': criterions})
                     return JsonResponse({'status': 200, 'message': test_result, 'criterions': criterions})
+        elif request_type == 'test_validation':
+            if sender_uuid is not None:
+                if self.request.user.is_authenticated:
+                    validated_test = validate_test_created_by_user(test_id=test_id, author=self.request.user)
+                    if isinstance(validated_test, Test):
+                        return redirect(reverse_lazy('test', kwargs={'test_preview': validated_test.preview}))
+                    return JsonResponse({'status': 400, 'message': 'failed'})
         return JsonResponse({'message': 'something get wrong'})
 
 
@@ -306,7 +311,7 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         if self.request.user.is_authenticated:
             permission = get_permission_for_creating_test_questions(self.request.user)
             if permission is False:
-                return redirect(reverse_lazy('create_test_questions'))
+                return redirect(reverse_lazy('create_test'))
             self.answers_formset = get_question_answers_formset(self.request.user.id)
             if self.answers_formset is None:
                 return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
@@ -391,8 +396,10 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
             else:
                 criterions_forms = TestCriterionFormSet(self.request.POST, instance=test_obj)
                 results_forms = TestUniqueResultFormSet(self.request.POST, instance=test_obj)
+            test_status = is_test_ready(test_slug=self.kwargs['test_preview'])
             mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, results_forms=results_forms,
-                                        criterions_forms=criterions_forms, preview_slug=self.kwargs['test_preview'])
+                                        criterions_forms=criterions_forms, preview_slug=self.kwargs['test_preview'],
+                                        is_test_ready=test_status, test=test_obj)
             return context | mix
 
     def form_valid(self, form):
@@ -471,17 +478,16 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
                 else:
                     answer_formset = [TestQuestionAnswersFormSet(self.request.POST, instance=instance,
                                       prefix=f'answer_{instance.id}')]
-
+            test_status = is_test_ready(test_slug=self.kwargs['test_preview'])
             mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, preview_slug=self.kwargs['test_preview'],
                                         answers_forms=answer_formset, question_page_obj=question_page_obj,
-                                        questions_forms=question_page_obj.object_list, question_management_form=question_formset.management_form)
+                                        questions_forms=question_page_obj.object_list, is_test_ready=test_status,
+                                        question_management_form=question_formset.management_form, test=test_obj)
             return context | mix
 
     def form_valid(self, form):
         context = self.get_context_data()
         answers_formsets = context['answers_forms']
-        # questions_formset = context['question_page_obj'].paginator.object_list
-        #page_number = self.request.GET.get('page')
 
         question_form = context['questions_forms'][0]
 

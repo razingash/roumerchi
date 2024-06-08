@@ -17,7 +17,7 @@ class CustomException(Exception):
 # logger conf...
 custom_logger = logging.getLogger('custom_logger')
 custom_logger.setLevel(logging.DEBUG)
-handler = logging.FileHandler('logger.log', encoding='utf-8')
+handler = logging.FileHandler('logs.log', encoding='utf-8')
 handler.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(levelname)s (%(asctime)s): %(message)s [%(filename)s]', datefmt='%d/%m/%Y %H:%M:%S')
 handler.setFormatter(formatter)
@@ -64,3 +64,10 @@ def log_decorator(expected_return=None, *return_args, **return_kwargs): # 4, 1
                 return expected_return
         return wrapper
     return decorator
+
+
+def notification(message): # later create file for telegram bot and improve it
+    try:
+        send_message(message)
+    except Exception as e:
+        custom_logger.critical(e)

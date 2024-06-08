@@ -18,6 +18,7 @@
             });
         });
     </script>
+    {% spaceless %}
     {% if not request.user.is_authenticated %}
     <script>
         document.addEventListener('DOMContentLoaded', function () {
@@ -61,6 +62,7 @@
     {% block additional_meta_tags %}{% endblock %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block additional_js %} {% endblock additional_js %}
+    {% endspaceless %}
 </head>
 <body>
 <svg class="svg__list" xmlns="http://www.w3.org/2000/svg">

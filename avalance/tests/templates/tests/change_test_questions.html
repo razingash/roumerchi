@@ -5,12 +5,31 @@
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/create_test.css' %}">
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/search_test.css' %}">
 {% endblock %}
-
+{% block additional_meta_tags %}
+{% if is_test_ready %}
+<meta name="test-id" content="{{ test.id }}">
+<meta name="test-url" content="{{ test.get_absolute_url }}">
+{% endif %}
+{% endblock %}
+{% block additional_js %}
+    {% if is_test_ready %}
+    <script src="{% static 'tests/test_verification' %}"></script>
+    {% endif %}
+{% endblock %}
 {% block content %}
 <div class="section__identification">
     <div class="identification__field">
         <div class="identification__header">
-            <a href="{% url 'create_test_questions' %}" class="identification__item">Create Questions</a>
+            <div class="identification__cold">
+                <div>Create Questions</div>
+                {% if is_test_ready %}
+                <div class="verify__test" id="verification">
+                    <svg class="svg__pencil" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+                        <path d="M3.237 19.9c-.064-.064-.087-.154-.065-.258l.395-2.281c.712-4.184.657-3.941 1.043-4.555l.901-1.447 3.183-5.123.806-1.303c.712-1.157.579-1.064 1.09-.76l.436.259-.134.22L8.52 8.48l-2.66 4.289c-.434.703-.585.864-.812.864-.148 0-.105-.184-.507 2.143l-.229 1.324.508.328.544.328c.02 0 .675-.466 1.455-1.036 1.242-.907 1.411-1.05 1.358-1.148-.121-.226-.059-.45.266-.966l4.49-7.23c.474-.766.804-1.241.845-1.217l.825.539c0 .014-.336.564-.746 1.222l-3.696 5.956-1.334 2.129c-.084.121-.489.464-.901.764l-2.589 1.887-1.92 1.343c-.044 0-.125-.044-.179-.098zm3.546-4.991c-.424-.146-.85-.571-.85-.847 0-.177.157-.444 2.091-3.551l1.091-1.758 1.59-2.558.877-1.407.492.309.783.487c.16.098.29.189.29.202s-.201.345-.447.737l-1.159 1.866-4.227 6.573-.193.063-.338-.117zm5.955-10.18L10.54 3.314c0-.048.974-1.653 1.483-2.442.454-.703.911-.952 1.57-.853.307.046 2.461 1.349 2.844 1.72a1.39 1.39 0 0 1 .325 1.41c-.074.206-1.709 2.884-1.789 2.93-.021.012-1.027-.595-2.235-1.35zm2.874-1.175c.405-.631.466-.799.383-1.049-.069-.21-.365-.419-2.015-1.421-.523-.317-.534-.321-.778-.248-.218.065-.289.14-.606.63-.198.306-.351.581-.341.613.02.06 2.949 1.911 3.029 1.914.025.001.173-.196.328-.438z"></path>
+                    </svg>
+                </div>
+                {% endif %}
+            </div>
             <a href="{% url 'change_test' preview_slug %}" class="identification__item">Change test</a>
         </div>
         <div class="pagination__field">

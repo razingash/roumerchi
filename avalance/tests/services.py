@@ -4,7 +4,7 @@ from django.db import transaction
 from django import forms
 from django.db.models import Count, Q, When, Case, Max
 
-from tests.exceptions import CustomException, log_and_notify_decorator
+from tests.exceptions import CustomException, log_and_notify_decorator, notification
 from tests.forms import TestQuestionAnswersForm
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
     TestCriterion, QuestionAnswerChoice, TestCategories, CriterionFilters, SortingFilters, Guest, GuestRespondent, \
@@ -45,6 +45,14 @@ def get_guest(guest__uuid): # don't check this because it should be possible
         else:
             guest = Guest.objects.only('id', 'uuid').create(uuid=guest__uuid)
             return guest
+
+def is_test_ready(test_slug):
+    test = Test.objects.filter(preview_slug=test_slug, status=1)
+    if test.exists():
+        if test.last().questions_amount > 14:
+            return True
+    return False
+
 
 def get_profile_info(profile_uuid):
     return CustomUser.objects.filter(uuid=profile_uuid)
@@ -416,10 +424,8 @@ def validate_paginator_get_attribute(page_number):
     return page_number
 
 def unique_result_points_validation(points, criterions_amount):
-    points = [item for i in points for item in i]
     points.sort()
     final_points = []
-
     if points[0] != 0:
         points[0] = 0
 
@@ -462,26 +468,30 @@ def validate_test_questions(test):
         if test.questions_amount != questions.count:
             test.questions_amount = questions.count()
             test.save()
-        print(questions_weight)
         return questions_weight
     else:
         raise CustomException('Yellow ValidationError: test created by user was incorrectly generated - questions != criterions')
 
 @log_and_notify_decorator(expected_return=False)
-def validate_test_created_by_user(test):
-    t = Test.objects.prefetch_related('testuniqueresult_set', 'testcriterion_set').get(id=1)
-
-    print(type(test.questions_amount))
+def validate_test_created_by_user(test_id, author):
+    test = Test.objects.prefetch_related('testuniqueresult_set', 'testcriterion_set').filter(id=test_id, author=author,
+                                                                                             status=1)
+    if not test.exists():
+        raise CustomException(f"Yellow Error: test with id {test_id} and author_id {author.id} wasn't found")
+    test = test.last()
     #answers points validation
-    unique_results = t.testuniqueresult_set.all()
-    criterions_amount = t.testcriterion_set.count()
+    unique_results = test.testuniqueresult_set.all()
+    criterions_amount = test.testcriterion_set.count()
     points = []
     for unique_result in unique_results:
         points.extend([unique_result.points_min, unique_result.points_max])
 
-    validated_results_points = unique_result_points_validation(points, criterions_amount)
+    unique_result_points_validation(points, criterions_amount) # validated_results_points
 
     # results points validation
-    validated_questions = validate_test_questions(test=test)
-    print(validated_results_points, validated_questions)
-    return True
+    validate_test_questions(test=test) # validated_questions
+    test.status = 2
+    test.save()
+    notification(message=f"USER - {author.username}\nWANTS verification confirmation for test [ {test.preview} ]\nwith id {test.id}")
+
+    return test
