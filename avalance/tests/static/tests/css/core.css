@@ -91,6 +91,12 @@ a {
     right: 20px;
 }
 
+.svg__menu_icon {
+    width: 20px;
+    height: 20px;
+    margin-right: 10px;
+}
+
 .dropdown__field {
     height: 100%;
     background: #1f1f1f;
@@ -99,7 +105,7 @@ a {
 .header__dropdown__item{
     display: flex;
     margin-top: 10px;
-    padding: 5px 20px 5px 45px;
+    padding: 5px 20px 5px 35px;
     font-size: 20px;
     font-family: 'Roboto', sans-serif;
     color: white;

@@ -59,21 +59,29 @@ def get_profile_info(profile_uuid):
 
 def get_test_info_by_slug(test_slug):
     queryset = Test.objects.prefetch_related('testcriterion_set', 'testquestion_set', 'testquestion_set__questionanswerchoice_set')
-    queryset = queryset.only('id', 'preview', 'description', 'questions_amount', 'grade', 'reputation')
+    queryset = queryset.only('id', 'preview', 'description', 'status', 'questions_amount', 'grade', 'reputation')
     queryset = queryset.filter(preview_slug=test_slug)
     return queryset
 
 def get_permission_for_creating_test(user):
-    permission = Test.objects.filter(author=user, status=1)
+    """сделать чтобы страница с тестами где статус=1 вызвали 403
+    пристально проверить редиректы(может сейчас ничего не надо менять)
+    """
+    permission = Test.objects.filter(author=user, status__in=[1, 2])
     if permission.exists(): # redirect to changing test page
-        return permission.only('id', 'preview_slug').last()
-    return False
+        return False
+    return True
 
 def get_permission_for_creating_test_questions(user):
-    permission = Test.objects.filter(author=user, status=1)
+    permission = Test.objects.filter(author=user, status__in=[1, 2])
     if permission.exists() and permission.last().questions_amount < 150: # redirect to create test questions  page
         return True
     return False
+
+def get_permission_for_test(test):
+    if test.status != 3:
+        return False
+    return True
 
 
 def get_test_results(test, user):
@@ -217,7 +225,7 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
             elif sorting == 4:  # Z-a
                 tests = tests.order_by('-preview_slug')
             else:  # elif sorting == 2: # newness
-                tests = tests.order_by('publication_date')
+                tests = tests.order_by('-publication_date')
             return tests
         elif category is not None:  # criterion and category
             tests = Test.objects
@@ -256,7 +264,7 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
             elif sorting == 4:  # Z-a with selected category
                 tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('-preview_slug')
             else:  # elif sorting == 2:  # by newness with selected category
-                tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('publication_date')
+                tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('-publication_date')
             return tests
         else:  # only categories
             tests = Test.objects.annotate(is_completed=is_completed).filter(filters).order_by('-id')
@@ -271,7 +279,7 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
         elif sorting == 4:  # Z-a
             tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('-preview_slug')
         else:  # elif sorting == 2: # newness
-            tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('publication_date')
+            tests = tests.annotate(is_completed=is_completed).filter(filters).order_by('-publication_date')
         return tests
 
 @log_and_notify_decorator(expected_return=lambda *args, **kwargs: get_filtered_tests_for_visitor(kwargs['criterion'], kwargs['sorting'], kwargs['category'], kwargs['is_guest']))

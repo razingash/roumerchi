@@ -16,7 +16,7 @@ from tests.models import CustomUser, Test, TestCriterion, SortingFilters, Criter
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
     get_test_results, get_test_results_for_guest, get_permission_for_creating_test, \
-    get_permission_for_creating_test_questions, is_test_ready, validate_test_created_by_user
+    get_permission_for_creating_test_questions, is_test_ready, validate_test_created_by_user, get_permission_for_test
 from tests.utils import DataMixin
 
 
@@ -224,6 +224,15 @@ class TestView(DetailView, DataMixin):
         queryset = get_test_info_by_slug(test_slug=test_slug)
         return get_object_or_404(queryset)
 
+    def get(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        permission = get_permission_for_test(self.object)
+        if permission is False:
+            return redirect(reverse_lazy('search_test'))
+        else:
+            context = self.get_context_data()
+            return self.render_to_response(context)
+
     def post(self, request, *args, **kwargs):
         request_type = request.POST.get('request_type')
         sender_uuid = request.POST.get('sender_uuid')
@@ -261,8 +270,8 @@ class CreateTest(LoginRequiredMixin, FormView, DataMixin):
     def dispatch(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             permission = get_permission_for_creating_test(self.request.user)
-            if permission is not False:
-                return redirect(reverse_lazy('change_test', kwargs={'test_preview': permission.preview_slug}))
+            if permission is False:
+                return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
             else:
                 return super().dispatch(request, *args, **kwargs)
         if self.request.method == 'GET':

@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  django-forum:
+    build:
+      context: ./avalance
+    container_name: avalance_core_api
+    ports:
+      - "8001:8888"
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8888"
+    restart: unless-stopped
+    volumes:
+      - static_volume:/avalance/tests/static
+    networks:
+      - internet # remove this later
+      - localnet
+
+volumes:
+  static_volume:
+
+networks:
+  internet:
+    name: internet
+    driver: bridge
+  localnet:
+    name: localnet
+    driver: bridge
