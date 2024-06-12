@@ -1,0 +1,4 @@
+nginx.conf
+Dockerfile
+compose.yml
+.dockerignore

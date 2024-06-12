@@ -20,10 +20,9 @@ from tests.services import get_profile_info, get_test_info_by_slug, create_new_t
 from tests.utils import DataMixin
 
 
-# Create your views here.
 
 def page_forbidden_error(request, exception):
-    return HttpResponseForbidden('<h1>try more</h1>')
+    return HttpResponseForbidden('<h1>try more</h1>', status=403)
 
 class RegistrationPageView(CreateView, DataMixin):
     form_class = RegisterCustomUserForm

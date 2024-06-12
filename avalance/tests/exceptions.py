@@ -1,4 +1,4 @@
-from tests.management.commands.bot import send_message
+from tests.bot import send_message
 import logging
 """
 Ex levels  - logging, notification -

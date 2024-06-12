@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  django-forum:
+    build:
+      context: .
+    container_name: roumerchi_core_api
+    ports:
+      - "8001:8001"
+    command: >
+      sh -c "python manage.py runserver 0.0.0.0:8001"
+    restart: unless-stopped
+    volumes:
+      - static_volume:/avalance/tests/static
+    networks:
+      - internet
+      - localnet
+
+  nginx:
+    image: nginx
+    container_name: roumerchi_nginx
+    depends_on:
+      - django-forum
+    ports:
+      - "80:80"
+    restart: always
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - static_volume:/static
+      - ./../nginx_static:/nginx_static/errors
+    networks:
+      - internet
+
+volumes:
+  static_volume:
+
+networks:
+  internet:
+    name: internet
+    driver: bridge
+  localnet:
+    name: localnet
+    driver: bridge

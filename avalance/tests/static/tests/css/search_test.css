@@ -16,6 +16,7 @@
     background: linear-gradient(360deg, #7f7f7f, #969696);
     border-bottom: 1px solid #000000c4;
     border-radius: 2px;
+    user-select: none;
 }
 
 .filtration__footer {
