@@ -64,9 +64,6 @@ def get_test_info_by_slug(test_slug):
     return queryset
 
 def get_permission_for_creating_test(user):
-    """сделать чтобы страница с тестами где статус=1 вызвали 403
-    пристально проверить редиректы(может сейчас ничего не надо менять)
-    """
     permission = Test.objects.filter(author=user, status__in=[1, 2])
     if permission.exists(): # redirect to changing test page
         return False

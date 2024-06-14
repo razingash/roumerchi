@@ -7,6 +7,7 @@ from uuid import uuid4
 from django.db.models import UniqueConstraint
 from django.urls import reverse
 from django.utils.text import slugify
+from unidecode import unidecode
 
 
 class TestComplaints(models.IntegerChoices):
@@ -14,11 +15,11 @@ class TestComplaints(models.IntegerChoices):
     SECOND = 2, 'second'
 
 class TestCategories(models.IntegerChoices):
-    INTELLIGENCE = 1, 'intelligence' # bulp
-    PSYCHOLOGY = 2, 'psychology' # mask of madness
-    PROFESSIONAL = 3, 'professional' # briefcase
-    ENTERTAINMENT = 4, 'entertainment' # roflan
-    EMOTIONAL = 5, 'emotional' # heart
+    INTELLIGENCE = 1, 'intelligence'
+    PSYCHOLOGY = 2, 'psychology'
+    PROFESSIONAL = 3, 'professional'
+    ENTERTAINMENT = 4, 'entertainment'
+    EMOTIONAL = 5, 'emotional'
 
 class TestStatuses(models.IntegerChoices):
     UNDERWAY = 1, 'underway' # in progress
@@ -68,7 +69,7 @@ class Test(models.Model):
     category = models.PositiveSmallIntegerField(choices=TestCategories.choices, blank=False, null=False)
     status = models.PositiveSmallIntegerField(choices=TestStatuses.choices, blank=False, null=False,
                                               default=TestStatuses.UNDERWAY)
-    preview = models.CharField(max_length=220, blank=False, null=False, validators=[MinLengthValidator(10)])
+    preview = models.CharField(max_length=220, validators=[MinLengthValidator(10)], blank=False, null=False)
     preview_slug = models.SlugField(blank=False, null=True, unique=True)
     description = models.TextField(max_length=5000, blank=False, null=False, validators=[MinLengthValidator(10)])#[500, 5000]
     questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(2),
@@ -80,7 +81,7 @@ class Test(models.Model):
 
     def clean(self):
         if self._state.adding:
-            self.preview_slug = slugify(self.preview)
+            self.preview_slug = slugify(unidecode(str(self.preview)))
             super().clean()
 
     def save(self, *args, **kwargs):

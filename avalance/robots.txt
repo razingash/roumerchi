@@ -1,0 +1,17 @@
+User-agent: *
+Disallow: /admin
+Disallow: /login/
+Disallow: /register/
+Disallow: /logout/
+Disallow: /settings/
+Disallow: /settings/password/
+Disallow: /create-test/
+Disallow: /create-questions/
+Disallow: /change-test/test/
+Disallow: /change-questions/test/
+
+Allow: /profile/
+Allow: /test/
+Allow: /search-test/*
+
+Sitemap: https://roumerchi.com/sitemap.xml

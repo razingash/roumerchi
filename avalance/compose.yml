@@ -28,6 +28,7 @@ services:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - static_volume:/static
       - ./../nginx_static:/nginx_static/errors
+      - ./robots.txt:/static/robots/
     networks:
       - internet
 

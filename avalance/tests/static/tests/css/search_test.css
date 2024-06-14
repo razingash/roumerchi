@@ -30,14 +30,14 @@
     width: 400px;
     min-height: 400px;
     z-index: 1;
-    transition:right 1.2s ease;
+    transition:right 0.6s ease;
 }
 .field__advanced_search {
     display: flex;
     flex-direction: column;
     justify-content: center;
     overflow-y: auto;
-    background: var(--containers-background); /* #34393d; */
+    background: var(--containers-background);
     max-height: 400px;
     padding: 10px;
     border-radius: 10px 0 0 10px;
@@ -214,6 +214,11 @@
 }
 
 @media (max-width: 768px) {
+    .test__item:hover {
+        box-shadow: initial;
+        transform: initial;
+        transition: initial;
+    }
     .test__field {
         padding-top: initial;
     }
@@ -258,7 +263,7 @@
         right: initial;
         width: 100%;
         min-height: initial;
-        transition: bottom 1.2s ease;
+        transition: bottom 0.6s ease;
     }
     #advanced_search_button:checked ~ .filtration__field {
         bottom: 0;

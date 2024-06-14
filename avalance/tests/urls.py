@@ -1,9 +1,21 @@
+from django.contrib.sitemaps.views import sitemap
 from django.urls import path
+
+from .sitemaps import StaticViewSitemap, ProfileViewSitemap, TestViewSitemap, SearchTestsSitemap, StaticRockViewSitemap
 from .views import *
 
+sitemaps = {
+    'static': StaticViewSitemap,
+    'stone': StaticRockViewSitemap,
+    'profile': ProfileViewSitemap,
+    'test': TestViewSitemap,
+    'search-test': SearchTestsSitemap,
+}
+
 urlpatterns = [
+    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
     path('login/', LoginPageView.as_view(), name='login'),
-    path('register/', RegistrationPageView.as_view(), name='registration'),# join login and registration?
+    path('register/', RegistrationPageView.as_view(), name='registration'),
     path('logout/', logout_user, name='logout'),
     path('settings/', SettingsBasePage.as_view(), name='settings'),
     path('settings/password/', SettingsPasswordPage.as_view(), name='settings_password'),
