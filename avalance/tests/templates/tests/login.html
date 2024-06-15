@@ -1,13 +1,11 @@
 {% extends 'tests/base.html' %}
 
 {% load static %}
-
+{% block additional_meta_tags %}
+<meta name="description" content="">
+{% endblock %}
 {% block additional_css %}
 <link type="text/css" rel="stylesheet" href="{% static 'tests/css/auth.css' %}">
-{% endblock %}
-
-{% block additional_js %}
-
 {% endblock %}
 {% block content %}
 <div class="section__identification">

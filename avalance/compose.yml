@@ -29,6 +29,7 @@ services:
       - static_volume:/static
       - ./../nginx_static:/nginx_static/errors
       - ./robots.txt:/static/robots/
+      - ./manifest.json:/static/manifest/
     networks:
       - internet
 

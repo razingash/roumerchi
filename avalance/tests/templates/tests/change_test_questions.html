@@ -6,6 +6,7 @@
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/search_test.css' %}">
 {% endblock %}
 {% block additional_meta_tags %}
+<meta name="description" content="">
 {% if is_test_ready %}
 <meta name="test-id" content="{{ test.id }}">
 <meta name="test-url" content="{{ test.get_absolute_url }}">

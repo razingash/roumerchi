@@ -3,7 +3,38 @@
 <html lang="en" data-mode="ligth">
 <head>
     <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport"/>
     <title>{{ title }}</title>
+    <meta name="keywords" content="">
+    <meta name="mobile-web-app-capable" content="yes"> <!-- check -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="application-name" content="roumerchi">
+    <meta name="apple-mobile-web-app-title" content="roumerchi">
+    <meta name="msapplication-starturl" content="https://roumerchi.com/"> <!-- change -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="apple-touch-icon" sizes="57x57" href="/icons/apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/icons/apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/icons/apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/icons/apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/icons/apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-icon-180x180.png">
+    <link rel="icon" sizes="192x192" href="/icons/icon-192x192.png">
+    <link rel="icon" sizes="256x256" href="/icons/icon-256x256.png">
+    <link rel="icon" sizes="384x384" href="/icons/icon-384x384.png">
+    <link rel="icon" sizes="512x512" href="/icons/icon-512x512.png">
+    <meta name="msapplication-TileColor" content="#ececec">
+    <meta name="msapplication-TileImage" content="/icons/ms-icon-144x144.png">
+    <meta name="theme-color" content="#1c1c1a"> <!-- check -->
+    <link rel="manifest" href="/manifest.json">
+    <meta property="og:type" content="website">
+    {% block additional_meta_tags %}{% endblock %}
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    {% if request.user.is_authenticated %}
+    <meta name="user-uuid" content="{{ user_uuid }}">
+    {% endif %}
     <link rel="icon" type="images/x-icon" href="{% static 'tests/favicon.ico' %}">
     <link rel="stylesheet" type="text/css" href="{% static 'tests/css/core.css' %}">
     {% block additional_css %}{% endblock additional_css %}
@@ -22,12 +53,6 @@
     {% if not request.user.is_authenticated %}
     <script src="{% static 'tests/js/base.js' %}"></script>
     {% endif %}
-    <meta content="width=device-width, initial-scale=1" name="viewport"/>
-    <meta name="csrf-token" content="{{ csrf_token }}">
-    {% if request.user.is_authenticated %}
-    <meta name="user-uuid" content="{{ user_uuid }}">
-    {% endif %}
-    {% block additional_meta_tags %}{% endblock %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     {% block additional_js %} {% endblock additional_js %}
     {% endspaceless %}

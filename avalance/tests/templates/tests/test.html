@@ -7,7 +7,12 @@
     <link type="text/css" rel="stylesheet" href="{% static 'tests/css/test.css' %}">
 {% endblock %}
 {% block additional_meta_tags %}
+<meta name="description" content="{{ test.preview }}">
+<meta property="og:url" content="{{ test.get_absolute_url }}">
+<meta property="og:description" content="{{ test.preview }}">
 <meta name="test-id" content="{{ test.id }}">
+<link rel="alternate" hreflang="ru" href="{{ test.get_absolute_url }}">
+<link rel="canonical" href="{{ test.get_absolute_url }}">
 {% endblock %}
 {% block additional_js %}
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
