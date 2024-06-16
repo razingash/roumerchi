@@ -58,7 +58,7 @@
             <div class="test__description">{{ test.description }}</div>
             {% if request.user.is_authenticated and test.author.uuid == user_uuid %}
             <div class="test__button change_modification">
-                <a href="{% url 'change_test' test.preview_slug %}" class="button__change">chage</a>
+                <a href="{% url 'tests:change_test' test.preview_slug %}" class="button__change">chage</a>
                 <div class="button__start">start</div>
             </div>
             {% else %}

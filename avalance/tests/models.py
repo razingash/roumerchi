@@ -14,6 +14,12 @@ class TestComplaints(models.IntegerChoices):
     FIRST = 1, 'first'
     SECOND = 2, 'second'
 
+class NotificationReason(models.IntegerChoices):
+    BUG = 1, 'bug'
+    VULNERABILITY = 2, 'vulnerability'
+    SUGGESTION = 3, 'suggestion'
+
+
 class TestCategories(models.IntegerChoices):
     INTELLIGENCE = 1, 'intelligence'
     PSYCHOLOGY = 2, 'psychology'
@@ -51,7 +57,7 @@ class CustomUser(AbstractUser):
                                                     default=UserTrustFactors.FIRST)
 
     def get_absolute_url(self):
-        return reverse('profile', kwargs={'profile_uuid': self.uuid})
+        return reverse('tests:profile', kwargs={'profile_uuid': self.uuid})
 
     def __str__(self):
         return self.username
@@ -71,7 +77,7 @@ class Test(models.Model):
                                               default=TestStatuses.UNDERWAY)
     preview = models.CharField(max_length=220, validators=[MinLengthValidator(10)], blank=False, null=False)
     preview_slug = models.SlugField(blank=False, null=True, unique=True)
-    description = models.TextField(max_length=5000, blank=False, null=False, validators=[MinLengthValidator(10)])#[500, 5000]
+    description = models.TextField(max_length=2500, blank=False, null=False, validators=[MinLengthValidator(10)])#[100, 2500]
     questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(2),
                                                                                            MaxValueValidator(150)]) # improve this#[15, 150]
     grade = models.SmallIntegerField(default=0, blank=False, null=False)
@@ -89,7 +95,7 @@ class Test(models.Model):
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):
-        return reverse('test', kwargs={'test_preview': self.preview_slug})
+        return reverse('tests:test', kwargs={'test_preview': self.preview_slug})
 
 
 class TestCriterion(models.Model):
@@ -98,11 +104,17 @@ class TestCriterion(models.Model):
     result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(10)])#[100, 700]
 
 
-class TestUniqueResult(models.Model): # сделать проверку для того чтобы не было несостыковок
+class TestUniqueResult(models.Model):
     test = models.ForeignKey(Test, on_delete=models.CASCADE)
     points_min = models.PositiveSmallIntegerField(blank=False, null=False)
     points_max = models.PositiveSmallIntegerField(blank=False, null=False)
     result = models.TextField(max_length=700, blank=False, null=False, validators=[MinLengthValidator(10)])#[100, 700]
+
+
+class Notification(models.Model):
+    type = models.PositiveSmallIntegerField(choices=NotificationReason.choices, blank=False, null=False)
+    content = models.CharField(max_length=1000, validators=[MinLengthValidator(8)], blank=False, null=False)
+    author = models.UUIDField(blank=True, null=True)
 
 
 class Complaint(models.Model):
@@ -159,7 +171,7 @@ class RespondentResult(models.Model):
 
 class Guest(models.Model):
     time_stat = models.DateTimeField(auto_now=True, blank=False, null=False)
-    uuid = models.UUIDField(primary_key=False, blank=True, null=False, unique=True)
+    uuid = models.UUIDField(primary_key=False, blank=False, null=False, unique=True)
 
     class Meta:
         db_table = 'guest'

@@ -6,7 +6,7 @@ class StaticViewSitemap(Sitemap):
     priority = 0.7
 
     def items(self):
-        return ['login', 'registration']
+        return ['tests:home', 'tests:login', 'tests:registration']
 
     def location(self, item):
         return reverse(item)
@@ -17,7 +17,8 @@ class StaticRockViewSitemap(Sitemap):
     priority = 0.0
 
     def items(self):
-        return ['logout', 'settings', 'settings_password', 'create_test', 'create_test_questions']
+        return ['tests:logout', 'tests:settings', 'tests:settings_password', 'tests:create_test', 'tests:create_test_questions',
+                'tests:password_reset']
 
     def location(self, item):
         return reverse(item)
@@ -43,7 +44,7 @@ class SearchTestsSitemap(Sitemap):
 
     def location(self, item):
         category, criterion, sorting = item
-        url = reverse('search_test')
+        url = reverse('tests:search_test')
         url += f'?category={category.name}&criterion={criterion.name}&sorting={sorting.name}'
         return url
 

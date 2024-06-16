@@ -1,7 +1,7 @@
 
 from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView, PasswordChangeView
+from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView
 from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
@@ -11,7 +11,8 @@ from django.views.generic import DetailView, ListView, CreateView, FormView
 from tests.exceptions import CustomException, log_and_notify_decorator, log_decorator
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
-    TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm
+    TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm, NofiticationForm, \
+    CustomPasswordResetForm, CustomPasswordResetConfirmForm
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
@@ -24,9 +25,40 @@ from tests.utils import DataMixin
 def page_forbidden_error(request, exception):
     return HttpResponseForbidden('<h1>try more</h1>', status=403)
 
+
+class MainPage(FormView, DataMixin):
+    form_class = NofiticationForm
+    template_name = 'tests/main.html'
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            mix = self.get_user_context(title='Roumerchi', user_uuid=self.request.user.uuid)
+        else:
+            mix = self.get_user_context(title='Roumerchi')
+        return context | mix
+
+    def form_valid(self, form):
+        if form.is_valid():
+            if self.request.user.is_authenticated:
+                form.instance.author = self.request.user.uuid
+            form.save()
+
+        return redirect('tests:search_test')
+
+    def get_queryset(self):
+        pass
+
+
 class RegistrationPageView(CreateView, DataMixin):
     form_class = RegisterCustomUserForm
     template_name = 'tests/register.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
+        else:
+            return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -36,12 +68,18 @@ class RegistrationPageView(CreateView, DataMixin):
     def form_valid(self, form):
         user = form.save()
         login(self.request, user)
-        return redirect('search_test')
+        return redirect('tests:search_test')
 
 
 class LoginPageView(LoginView, DataMixin):
     template_name = 'tests/login.html'
     form_class = LoginCustomUserForm
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
+        else:
+            return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -53,7 +91,54 @@ class LoginPageView(LoginView, DataMixin):
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
-        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
+
+
+class CustomPasswordResetView(PasswordResetView):
+    form_class = CustomPasswordResetForm
+    template_name = 'tests/password_reset.html'
+    email_template_name = 'tests/password_reset_email.html'
+    success_url = reverse_lazy('tests:password_reset_done')
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return redirect('tests:search_test')
+        return super().dispatch(request, *args, **kwargs)
+
+
+class CustomPasswordResetConfirmView(PasswordResetConfirmView):
+    form_class = CustomPasswordResetConfirmForm
+    template_name = 'tests/password_reset_confirm.html'
+    email_template_name = 'tests/password_reset_email.html'
+    success_url = reverse_lazy('tests:password_reset_complete')
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return redirect('tests:search_test')
+        return super().dispatch(request, *args, **kwargs)
+
+
+class RenewedLoginPageView(LoginView, DataMixin):
+    template_name = 'tests/password_reset_complete.html'
+    form_class = LoginCustomUserForm
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
+        else:
+            return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, *, object_list=None, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            mix = self.get_user_context(title='Login', user_uuid=self.request.user.uuid)
+        else:
+            mix = self.get_user_context(title='Login')
+        return context | mix
+
+    def get_success_url(self):
+        user_uuid = self.request.user.uuid
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
 
 
 class SettingsBasePage(LoginRequiredMixin, DataMixin, FormView):
@@ -78,11 +163,11 @@ class SettingsBasePage(LoginRequiredMixin, DataMixin, FormView):
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
-        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
 
 
 class SettingsPasswordPage(LoginRequiredMixin, PasswordChangeView, DataMixin):
-    template_name = 'tests/password_reset.html'
+    template_name = 'tests/password_change.html'
     form_class = ChangeCustomUserPasswordForm
 
     def get_context_data(self, *, object_list=None, **kwargs):
@@ -96,7 +181,7 @@ class SettingsPasswordPage(LoginRequiredMixin, PasswordChangeView, DataMixin):
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
-        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
 
 
 class ProfileView(DetailView, DataMixin):
@@ -133,12 +218,12 @@ class ProfileView(DetailView, DataMixin):
         page_obj = paginator.get_page(page_number)
 
         if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, tests=page_obj,
+            mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, ptests=page_obj,
                                         categories=categories, sortings=sortings, criterions=criterions,
                                         modified_get=modified_get)
         else:
             mix = self.get_user_context(title='Profile', categories=categories, sortings=sortings, criterions=criterions,
-                                        modified_get=modified_get, tests=tests)
+                                        modified_get=modified_get, ptests=tests)
         return context | mix
 
     def get_object(self, queryset=None):
@@ -156,7 +241,7 @@ class ProfileView(DetailView, DataMixin):
 class SearchTestsView(ListView, DataMixin):
     model = Test
     template_name = 'tests/search_test.html'
-    context_object_name = 'tests'
+    context_object_name = 'ptests'
     paginate_by = 20
 
     def get_context_data(self, *, object_list=None, **kwargs):
@@ -184,7 +269,7 @@ class SearchTestsView(ListView, DataMixin):
         sorting = self.request.GET.get('sorting_type')
         category = self.request.GET.get('category_type')
         #underway_tests = self.request.POST.getlist('underway_tests[]')
-        print(criterion, sorting, category)
+        #print(criterion, sorting, category)
         if self.request.user.is_authenticated:
             user_uuid = self.request.user.uuid
             queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, is_guest=False,
@@ -227,7 +312,7 @@ class TestView(DetailView, DataMixin):
         self.object = self.get_object()
         permission = get_permission_for_test(self.object)
         if permission is False:
-            return redirect(reverse_lazy('search_test'))
+            return redirect(reverse_lazy('tests:search_test'))
         else:
             context = self.get_context_data()
             return self.render_to_response(context)
@@ -256,7 +341,7 @@ class TestView(DetailView, DataMixin):
                 if self.request.user.is_authenticated:
                     validated_test = validate_test_created_by_user(test_id=test_id, author=self.request.user)
                     if isinstance(validated_test, Test):
-                        return redirect(reverse_lazy('test', kwargs={'test_preview': validated_test.preview}))
+                        return redirect(reverse_lazy('tests:test', kwargs={'test_preview': validated_test.preview}))
                     return JsonResponse({'status': 400, 'message': 'failed'})
         return JsonResponse({'message': 'something get wrong'})
 
@@ -270,7 +355,7 @@ class CreateTest(LoginRequiredMixin, FormView, DataMixin):
         if self.request.user.is_authenticated:
             permission = get_permission_for_creating_test(self.request.user)
             if permission is False:
-                return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
+                return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
             else:
                 return super().dispatch(request, *args, **kwargs)
         if self.request.method == 'GET':
@@ -306,7 +391,7 @@ class CreateTest(LoginRequiredMixin, FormView, DataMixin):
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
-        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
 
 
 class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
@@ -319,10 +404,10 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         if self.request.user.is_authenticated:
             permission = get_permission_for_creating_test_questions(self.request.user)
             if permission is False:
-                return redirect(reverse_lazy('create_test'))
+                return redirect('tests:create_test')
             self.answers_formset = get_question_answers_formset(self.request.user.id)
             if self.answers_formset is None:
-                return redirect(reverse_lazy('profile', kwargs={'profile_uuid': self.request.user.uuid}))
+                return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
             return super().dispatch(request, *args, **kwargs)
         if self.request.method == 'GET':
             raise CustomException('Green Error: in CreateTestQuestions someone tried to gain access without authorization', error_type=1)
@@ -368,7 +453,7 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
-        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
 
 
 class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
@@ -434,7 +519,7 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
-        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
 
 
 class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
@@ -531,9 +616,9 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid
-        return reverse_lazy('profile', kwargs={'profile_uuid': user_uuid})
+        return reverse_lazy('tests:profile', kwargs={'profile_uuid': user_uuid})
 
 
 def logout_user(request):
     logout(request)
-    return redirect('search_test')
+    return redirect('tests:search_test')

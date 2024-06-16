@@ -35,8 +35,9 @@
 .test__preview {
     display: flex;
     justify-content: center;
-    margin: 10px 0 30px 0;
+    margin: 10px 5px;
     overflow-wrap: anywhere;
+    font-family: cursive;
 }
 
 .test__description {
@@ -239,5 +240,17 @@
     .test__walkthrough {
         width: 100%;
         min-width: auto;
+    }
+    .walkthrough__midifier {
+        padding: 0 4px;
+    }
+    .test__field {
+        padding: 20px 0;
+    }
+    .test__preview{
+        margin-bottom: 20px;
+    }
+    .test__description {
+        margin-left: 10px;
     }
 }

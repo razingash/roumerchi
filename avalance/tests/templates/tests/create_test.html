@@ -15,7 +15,7 @@
     <div class="identification__field">
         <div class="identification__header">
             <div class="identification__cold">Test</div>
-            <a href="{% url 'create_test_questions' %}" class="identification__hot">Questions</a>
+            <a href="{% url 'tests:create_test_questions' %}" class="identification__hot_right">Questions</a>
         </div>
         <form class="form__test" method="post">
             {% csrf_token %}

@@ -57,18 +57,23 @@
     user-select: none;
 }
 
-.identification__hot {
+.identification__hot_right, .identification__hot_left {
     padding: 2px 6px 2px 6px;
     margin: 2px 0 2px 0;
     border-radius: 4px;
     color: black;
     border: 2px solid #00000070;
     position: absolute;
-    right: 10px;
     top: 3px;
 }
+.identification__hot_right {
+    right: 10px;
+}
+.identification__hot_left {
+    left: 10px;
+}
 
-.form__login, .form__registration {
+.form__login, .form__registration, .form__recovery {
     display: flex;
     flex-direction: column;
     flex-wrap: wrap;
@@ -80,8 +85,8 @@
     border-right: 2px solid #000;
     border-bottom: 2px solid #000;
 }
-.form__login {
-    min-height: 200px;
+.form__login, .form__recovery {
+    min-height: 150px;
     padding: 20px 20px 25px 20px;
 }
 
@@ -92,6 +97,7 @@
 .form__row {
     display: flex;
     flex-wrap: wrap;
+    margin: 6px 0;
 }
 
 .form__field {
@@ -100,12 +106,24 @@
     justify-content: space-between;
 }
 
-.auth-form-input {
-
+.auth-form-input, .form_input {
+    width: 100%;
+    padding: 4px;
+    border: 2px solid #333;
+    border-radius: 2px;
+    background-color: #f2f2f2;
+    color: #333;
+    font-size: 1.2em;
+}
+.form_input::placeholder {
+    font-family: cursive;
 }
 
 .form-label {
     flex-wrap: nowrap;
+    font-size: larger;
+    color: black;
+    font-family: serif;
 }
 
 .form-errors {
@@ -120,7 +138,16 @@
 }
 
 .button__submit {
-
+    margin: 6px 0;
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    padding: 4px 0;
+    border: 2px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: larger;
+    font-family: serif;
 }
 
 .forgot__password {
@@ -129,16 +156,24 @@
     right: 15px;
     color: #000;
 }
+.changed__password {
+    background: var(--containers-background);
+    border-left: 2px solid #000;
+    border-right: 2px solid #000;
+    display: flex;
+    justify-content: center;
+    padding: 6px 8px 0 8px;
+    font-weight: 600;
+}
 
-@media (max-width: 768px) {
+
+@media (max-width: 400px) {
     .identification__field {
         min-width: auto;
     }
-    .form__login {
-        min-width: auto;
+    .auth-form-input, .form_input {
+        font-size: initial;
     }
-}
-@media (max-width: 400px) {
     .form__field {
         min-width: 0;
         flex-direction: column;

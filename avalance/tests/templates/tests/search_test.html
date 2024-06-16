@@ -86,8 +86,8 @@
                     <div class="hidden__field"></div>
                 </div>
                 <div class="test__list">
-                    {% if tests %}
-                    {% for test in tests %}
+                    {% if ptests %}
+                    {% for test in ptests %}
                     <div class="test__cell">
                         <a href="{{ test.get_absolute_url }}" id="{{ test.id }}" class="test__item">
                             {% if test.category == 1 %}

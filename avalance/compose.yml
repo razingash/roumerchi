@@ -27,9 +27,9 @@ services:
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - static_volume:/static
-      - ./../nginx_static:/nginx_static/errors
-      - ./robots.txt:/static/robots/
-      - ./manifest.json:/static/manifest/
+      - ./../nginx_static:/primal_static/errors
+      - ./robots.txt:/primal_static/robots.txt
+      - ./manifest.json:/primal_static/manifest.json
     networks:
       - internet
 

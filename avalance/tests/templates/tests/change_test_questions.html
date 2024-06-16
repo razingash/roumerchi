@@ -31,7 +31,7 @@
                 </div>
                 {% endif %}
             </div>
-            <a href="{% url 'change_test' preview_slug %}" class="identification__item">Change test</a>
+            <a href="{% url 'tests:change_test' preview_slug %}" class="identification__item">Change test</a>
         </div>
         <div class="pagination__field">
         {% if question_page_obj.has_other_pages %}

@@ -1,0 +1,149 @@
+
+.bug__report__form {
+    width: fit-content;
+    background: #5757ff;
+    display: flex;
+    flex-direction: column;
+    border-radius: 9px;
+    margin: 0 10px;
+    border: 2px solid #333;
+    padding: 10px;
+}
+
+.bug__report__cover {
+    display: flex;
+    margin: 5px 0 15px 0;
+    justify-content: space-between;
+    float: right;
+}
+
+.test__field__header {
+    font-family: cursive;
+    font-size: 2em;
+    font-weight: 600;
+}
+
+.test__field__description {
+    font-family: cursive;
+}
+
+.cover__info {
+    font-family: cursive;
+}
+
+.cover__contact {
+    font-family: sans-serif;
+    font-weight: 600;
+}
+
+.bug__report__form > .form__row {
+    padding: 10px;
+}
+
+.main__field {
+    background: var(--containers-background);
+    box-shadow: inset 0 0 10px rgb(0 0 0 / 50%);
+    padding-top: 30px;
+}
+
+.test__field {
+    padding: 0 20px 20px 20px;
+    background: initial;
+    box-shadow: initial;
+    padding-top: initial;
+}
+
+.form__row {
+    display: flex;
+    flex-wrap: wrap;
+}
+.form__field {
+    display: flex;
+    flex-grow: 1;
+    justify-content: space-between;
+    align-items: center;
+}
+.form-label {
+    flex-wrap: nowrap;
+}
+.label__type{
+    font-size: larger;
+    color: white;
+    font-family: serif;
+}
+
+.form-errors {
+}
+
+.form__textarea {
+    background: #1c1c1a;
+    border: 0;
+    color: #ececec;
+    resize: none;
+}
+
+.button__submit {
+    margin: 6px 0;
+    width: 100%;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 0;
+    border: 2px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: larger;
+    font-family: serif;
+}
+.button__submit:hover {
+    background-color: #0056b3;
+}
+
+.svg__roflan {
+    height: auto;
+    max-width: 300px;
+    margin-left: -22px;
+    float: left;
+}
+
+.form__select {
+    user-select: none;
+    width: 80%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #f2f2f2;
+    color: #333;
+    cursor: pointer;
+}
+
+@media (max-width: 500px){
+    .svg__roflan{
+        margin-left: -6px;
+        max-width: 150px;
+    }
+    .additional__info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .form__textarea {
+        width: 100%;
+        height: 150px;
+    }
+    .bug__report__cover {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    .bug__report__cover {
+        margin-bottom: 15px;
+    }
+    .test__field {
+        padding: 0 4px 4px 4px;
+    }
+    .bug__report__form {
+        margin: initial;
+    }
+    .form__select {
+        padding: 5px;
+    }
+}

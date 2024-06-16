@@ -111,19 +111,19 @@
                     </label>
                 {% spaceless %}
                 {% if request.user.is_authenticated %}
-                <a href="{% url 'profile' user_uuid %}" class="header__dropdown__item">
+                <a href="{% url 'tests:profile' user_uuid %}" class="header__dropdown__item">
                     <svg class="svg__menu_icon">
                         <use xlink:href="#icon_logged"></use>
                     </svg>
                     <div>Profile</div>
                 </a>
-                <a href="{% url 'search_test' %}" class="header__dropdown__item" id="search_test_1">
+                <a href="{% url 'tests:search_test' %}" class="header__dropdown__item" id="search_test_1">
                     <svg class="svg__menu_icon">
                         <use xlink:href="#icon_tests"></use>
                     </svg>
                     <div>Tests</div>
                 </a>
-                <a href="{% url 'logout' %}" class="header__dropdown__item">
+                <a href="{% url 'tests:logout' %}" class="header__dropdown__item">
                     <svg class="svg__menu_icon">
                         <use xlink:href="#icon_exit"></use>
                     </svg>
@@ -131,10 +131,10 @@
                 </a>
                 {% else %}
                 <div class="header__dropdown__auth">
-                    <a href="{% url 'registration' %}" class="dropdown__auth__registration">sign up</a>
-                    <a href="{% url 'login' %}" class="dropdown__auth__login">sign in</a>
+                    <a href="{% url 'tests:registration' %}" class="dropdown__auth__registration">sign up</a>
+                    <a href="{% url 'tests:login' %}" class="dropdown__auth__login">sign in</a>
                 </div>
-                <a href="{% url 'search_test' %}" class="header__dropdown__item" id="search_test_1">
+                <a href="{% url 'tests:search_test' %}" class="header__dropdown__item" id="search_test_1">
                     <svg class="svg__menu_icon">
                         <use xlink:href="#icon_tests"></use>
                     </svg>
@@ -145,16 +145,16 @@
                 </div>
             </div>
         </div>
-        <a href="{% url 'search_test' %}" class="header__sitename" id="search_test_2">Roumerchi</a>
+        <a href="{% url 'tests:search_test' %}" class="header__sitename" id="search_test_2">Roumerchi</a>
         {% spaceless %}
         {% if request.user.is_authenticated %}
-        <a href="{% url 'profile' user_uuid %}" class="header__user_cover">
+        <a href="{% url 'tests:profile' user_uuid %}" class="header__user_cover">
             <svg class="svg__user">
                 <use xlink:href="#icon_user"></use>
             </svg>
         </a>
         {% else %}
-        <a href="{% url 'login' %}" class="header__user_cover">
+        <a href="{% url 'tests:login' %}" class="header__user_cover">
             <svg class="svg__user">
                 <use xlink:href="#icon_user"></use>
             </svg>

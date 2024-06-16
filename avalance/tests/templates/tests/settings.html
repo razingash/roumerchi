@@ -13,7 +13,7 @@
         <div class="identification__header">Settings</div>
         <div class="identification__list">
             <div class="identification__cold">about user</div>
-            <a href="{% url 'settings_password' %}" class="identification__hot">reset password</a>
+            <a href="{% url 'tests:settings_password' %}" class="identification__hot_right">reset password</a>
         </div>
         <form class="form__login" method="post">
             {% csrf_token %}

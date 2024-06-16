@@ -1,7 +1,18 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm
-from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult, QuestionAnswerChoice, TestQuestion
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm, PasswordResetForm
+from django.utils.translation import gettext_lazy as _
+
+from tests.models import CustomUser, Test, TestCriterion, TestUniqueResult, QuestionAnswerChoice, TestQuestion, \
+    Notification
+
+class CustomPasswordResetForm(PasswordResetForm):
+    email = forms.EmailField(label=_("Email"), max_length=254, widget=forms.EmailInput(attrs={"autocomplete": "email", 'class': 'form_input', 'placeholder': 'input email...'}))
+
+
+class CustomPasswordResetConfirmForm(SetPasswordForm):
+    new_password1 = forms.CharField(label='New Password', widget=forms.PasswordInput(attrs={'class': 'form_input', 'placeholder': 'input password...'}))
+    new_password2 = forms.CharField(label='Repeat Password', widget=forms.PasswordInput(attrs={'class': 'form_input', 'placeholder': 'repeat password...'}))
 
 
 class RegisterCustomUserForm(UserCreationForm):
@@ -128,3 +139,12 @@ TestQuestionAnswersFormSet = forms.inlineformset_factory(TestQuestion, QuestionA
 
 TestQuestionAnswersCreateFormSet = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
 
+
+class NofiticationForm(forms.ModelForm):
+    class Meta:
+        model = Notification
+        fields = ['type', 'content']
+        widgets = {
+            'type': forms.Select(attrs={'class': 'form__select'}),
+            'content': forms.Textarea(attrs={'cols': 30, 'rows': 6, 'class': 'form__textarea', 'placeholder': 'at least 10 symbols'}),
+        }

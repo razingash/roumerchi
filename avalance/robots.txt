@@ -5,13 +5,15 @@ Disallow: /register/
 Disallow: /logout/
 Disallow: /settings/
 Disallow: /settings/password/
+Disallow: /password-reset/
+Disallow: /password-reset/done/
+Disallow: /password-reset/*/*/
+Disallow: /password-reset/complete/
 Disallow: /create-test/
 Disallow: /create-questions/
 Disallow: /change-test/test/
 Disallow: /change-questions/test/
 
-Allow: /profile/
-Allow: /test/
-Allow: /search-test/*
-
 Sitemap: https://roumerchi.com/sitemap.xml
+
+Host: https://roumerchi.com

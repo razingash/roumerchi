@@ -29,10 +29,10 @@
     font-size: 1.5em;
     font-weight: 900;
 }
-.identification__hot {
+.identification__hot_right {
     color: #fff;
 }
-.identification__hot:hover {
+.identification__hot_right:hover {
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000;
 }
 .identification__cold {

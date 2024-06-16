@@ -24,7 +24,7 @@ handler403 = page_forbidden_error
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('roumerchi/', include('tests.urls'))
+    path('roumerchi/', include('tests.urls', namespace='tests'))
 ]
 
 if settings.DEBUG:
