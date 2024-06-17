@@ -116,6 +116,13 @@
     cursor: pointer;
 }
 
+@media (max-device-width: 1280px) {
+    .test__field__description,
+    .cover__info {
+        font-family: initial;
+    }
+}
+
 @media (max-width: 500px){
     .svg__roflan{
         margin-left: -6px;

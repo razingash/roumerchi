@@ -28,6 +28,17 @@ CHAT_ID = os.getenv('CHAT_ID')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG') == 'True'
 
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SECURE = True
+SECURE_HSTS_SECONDS = 31536000
+
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*']
 
 

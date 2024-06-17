@@ -104,19 +104,17 @@
     display: flex;
     flex-grow: 1;
     justify-content: space-between;
+    align-items: center;
 }
 
 .auth-form-input, .form_input {
     width: 100%;
     padding: 4px;
     border: 2px solid #333;
-    border-radius: 2px;
+    border-radius: 4px;
     background-color: #f2f2f2;
     color: #333;
     font-size: 1.2em;
-}
-.form_input::placeholder {
-    font-family: cursive;
 }
 
 .form-label {
@@ -177,6 +175,7 @@
     .form__field {
         min-width: 0;
         flex-direction: column;
+        align-items: initial;
     }
     .section__identification {
         align-items: initial;

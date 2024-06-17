@@ -1,5 +1,6 @@
-from tests.bot import send_message
 import logging
+from tests.bot import send_message
+
 """
 Ex levels  - logging, notification -
 green -  1 - uncritical, predictable, possible error
@@ -33,13 +34,13 @@ def log_and_notify_decorator(expected_return=None, *return_args, **return_kwargs
                 print(f"Error: {e}")
                 if e.error_type == 2:
                     custom_logger.error(e)
-                    send_message(error_message=e)
+                    admin_notification(message=e)
                 elif e.error_type == 3:
                     custom_logger.critical(e)
-                    send_message(error_message=e)
+                    admin_notification(message=e)
                 elif e.error_type == 5:
                     custom_logger.warning(e)
-                    send_message(error_message=e)
+                    admin_notification(message=e, request=kwargs['request'])
                 if callable(expected_return):
                     return expected_return(*args, **kwargs)
                 if return_args or return_kwargs:
@@ -65,8 +66,18 @@ def log_decorator(expected_return=None, *return_args, **return_kwargs): # 4, 1
         return wrapper
     return decorator
 
+def get_guest_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
 
-def notification(message): # later create file for telegram bot and improve it
+def admin_notification(message, request=None):
+    if request:
+        guest_ip = get_guest_ip(request=request)
+        message = f'guest ip: {guest_ip}\n{message}'
     try:
         send_message(message)
     except Exception as e:

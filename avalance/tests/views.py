@@ -1,7 +1,8 @@
 
 from django.contrib.auth import logout, login
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.views import LoginView, PasswordChangeView, PasswordResetView, PasswordResetConfirmView, \
+    PasswordResetDoneView
 from django.core.paginator import Paginator
 from django.http import JsonResponse, HttpResponseForbidden
 from django.shortcuts import get_object_or_404, redirect
@@ -106,6 +107,15 @@ class CustomPasswordResetView(PasswordResetView):
         return super().dispatch(request, *args, **kwargs)
 
 
+class CustomPasswordResetDoneView(PasswordResetDoneView):
+    template_name = 'tests/password_reset_done.html'
+
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return redirect('tests:search_test')
+        return super().dispatch(request, *args, **kwargs)
+
+
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     form_class = CustomPasswordResetConfirmForm
     template_name = 'tests/password_reset_confirm.html'
@@ -130,10 +140,7 @@ class RenewedLoginPageView(LoginView, DataMixin):
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='Login', user_uuid=self.request.user.uuid)
-        else:
-            mix = self.get_user_context(title='Login')
+        mix = self.get_user_context(title='Login')
         return context | mix
 
     def get_success_url(self):
@@ -145,12 +152,17 @@ class SettingsBasePage(LoginRequiredMixin, DataMixin, FormView):
     template_name = 'tests/settings.html'
     form_class = ChangeCustomUserForm
 
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            return redirect('tests:search_test')
+
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='settings', user_uuid=self.request.user.uuid)
-            context.update(mix)
-            return context | mix
+        mix = self.get_user_context(title='settings', user_uuid=self.request.user.uuid)
+        context.update(mix)
+        return context | mix
 
     def form_valid(self, form):
         form.save()
@@ -170,11 +182,16 @@ class SettingsPasswordPage(LoginRequiredMixin, PasswordChangeView, DataMixin):
     template_name = 'tests/password_change.html'
     form_class = ChangeCustomUserPasswordForm
 
+    def dispatch(self, request, *args, **kwargs):
+        if self.request.user.is_authenticated:
+            return super().dispatch(request, *args, **kwargs)
+        else:
+            return redirect('tests:search_test')
+
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
-        if self.request.user.is_authenticated:
-            mix = self.get_user_context(title='password updating', user_uuid=self.request.user.uuid)
-            return context | mix
+        mix = self.get_user_context(title='password updating', user_uuid=self.request.user.uuid)
+        return context | mix
 
     def get_object(self, queryset=None):
         return self.request.user

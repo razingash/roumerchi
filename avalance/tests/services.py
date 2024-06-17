@@ -4,7 +4,8 @@ from django.db import transaction
 from django import forms
 from django.db.models import Count, Q, When, Case, Max
 
-from tests.exceptions import CustomException, log_and_notify_decorator, notification
+from notifications import admin_notification
+from tests.exceptions import CustomException, log_and_notify_decorator
 from tests.forms import TestQuestionAnswersForm
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
     TestCriterion, QuestionAnswerChoice, TestCategories, CriterionFilters, SortingFilters, Guest, GuestRespondent, \
@@ -304,7 +305,7 @@ def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uui
         categories = [choice.value for choice in TestCategories]
         if category not in categories:
             category = None
-    print(criterion, sorting, category, visitor_uuid, profile_uuid)
+    #print(criterion, sorting, category, visitor_uuid, profile_uuid)
     if is_guest:
         return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
                                               is_guest=is_guest, visitor_uuid=visitor_uuid,
@@ -497,6 +498,6 @@ def validate_test_created_by_user(test_id, author):
     validate_test_questions(test=test) # validated_questions
     test.status = 2
     test.save()
-    notification(message=f"USER - {author.username}\nWANTS verification confirmation for test [ {test.preview} ]\nwith id {test.id}")
+    admin_notification(message=f"USER - {author.username}\nWANTS verification confirmation for test [ {test.preview} ]\nwith id {test.id}")
 
     return test

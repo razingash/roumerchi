@@ -200,3 +200,11 @@ class GuestResponse(models.Model):
     class Meta:
         db_table = 'guest_response'
 
+
+class BannedIp(models.Model):
+    ip_address = models.CharField(max_length=100, unique=True)
+    banned_at = models.DateTimeField(auto_now_add=True)
+    #reason = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.ip_address
