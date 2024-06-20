@@ -1,5 +1,6 @@
 from django.contrib.sitemaps.views import sitemap
 from django.urls import path
+from django.views.decorators.cache import cache_page
 
 from .sitemaps import StaticViewSitemap, ProfileViewSitemap, TestViewSitemap, SearchTestsSitemap, StaticRockViewSitemap
 from .views import *
@@ -15,7 +16,8 @@ sitemaps = {
 app_name = 'tests'
 
 urlpatterns = [
-    path('sitemap.xml', sitemap, {'sitemaps': sitemaps}, name='sitemap'),
+    path('api/healthcheck/', health_check, name='health_check'),
+    path('sitemap.xml', cache_page(60*30)(sitemap), {'sitemaps': sitemaps}, name='sitemap'),
     path('settings/password/', SettingsPasswordPage.as_view(), name='settings_password'),
     path('password-reset/', CustomPasswordResetView.as_view(), name='password_reset'),
     path('password-reset/done/', CustomPasswordResetDoneView.as_view(), name='password_reset_done'),

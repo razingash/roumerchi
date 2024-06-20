@@ -9,7 +9,13 @@ services:
       - "8001:8001"
     command: >
       sh -c "python manage.py runserver 0.0.0.0:8001"
-    restart: unless-stopped
+    healthcheck:
+      test: curl -f http://localhost/roumerchi/api/healthcheck || exit 1
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: on-failure:5
     volumes:
       - static_volume:/avalance/tests/static
     networks:
@@ -32,6 +38,12 @@ services:
       - ./../nginx_static/icons:/primal_static/icons
       - ./robots.txt:/primal_static/robots.txt
       - ./manifest.json:/primal_static/manifest.json
+    command: >
+      /bin/sh -c "
+      if [ ! -f /etc/nginx/ssl/nginx.key ]; then
+        mkdir -p /etc/nginx/ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt -subj '/CN=localhost';
+      fi &&
+      nginx -g 'daemon off;'"
     networks:
       - internet
 

@@ -1,5 +1,5 @@
 import telebot
-from avalance.settings import TOKEN, CHAT_ID
+from avalance.settings.base import TOKEN, CHAT_ID
 
 def log_errors(f):
     def wrapper(*args, **kwargs):
@@ -16,6 +16,6 @@ bot = telebot.TeleBot(TOKEN)
 chat_id = CHAT_ID
 
 @log_errors
-def send_message(error_message): # improve this after setting up nginx | and add logger
+def send_message(error_message):
     bot.send_message(chat_id, error_message)
 

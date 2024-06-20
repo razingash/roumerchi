@@ -3,3 +3,4 @@ Dockerfile
 compose.yml
 .dockerignore
 logs.log
+roumerchi_cache

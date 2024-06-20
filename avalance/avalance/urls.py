@@ -16,8 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include, re_path
-from django.conf.urls.static import static
-from avalance import settings
+from avalance.settings import base
 from tests.views import page_forbidden_error
 
 handler403 = page_forbidden_error
@@ -27,14 +26,12 @@ urlpatterns = [
     path('roumerchi/', include('tests.urls', namespace='tests'))
 ]
 
-if settings.DEBUG:
+if base.IS_IN_PRODUCTION:
     import debug_toolbar
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls))] + urlpatterns
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 else:
     from django.views.static import serve as mediaserve
     urlpatterns += [
-        re_path(f'^{settings.MEDIA_URL.lstrip("/")}(?P<path>.*)$', mediaserve, {'document_root': settings.MEDIA_ROOT}),
-        re_path(f'^{settings.STATIC_URL.lstrip("/")}(?P<path>.*)$', mediaserve, {'document_root': settings.STATIC_ROOT}),
+        re_path(f'^{base.STATIC_URL.lstrip("/")}(?P<path>.*)$', mediaserve, {'document_root': base.STATIC_ROOT}),
     ]

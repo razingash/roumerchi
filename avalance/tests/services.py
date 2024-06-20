@@ -141,9 +141,22 @@ def get_user_created_tests(criterion, sorting, category, profile_uuid):
     return tests
 
 
+def get_filters_for_test(test_filter, filter_choices):
+    if test_filter is not None:
+        cleaned_filter = to_int(test_filter)
+        filters = [choice.value for choice in filter_choices]
+        if cleaned_filter not in filters:
+            return None
+        return cleaned_filter
+    return None
+
 def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None):
     """In case of duplicates that may occur in the future if storing incomplete attempts to take a test in the
     database, try to use distinct(), or modify is_complete"""
+    criterion = get_filters_for_test(test_filter=criterion, filter_choices=CriterionFilters)
+    sorting = get_filters_for_test(test_filter=sorting, filter_choices=SortingFilters)
+    category = get_filters_for_test(test_filter=category, filter_choices=TestCategories)
+
     if is_guest: # for guests
         visitor_id = get_guest(guest__uuid=visitor_uuid)
         if visitor_id is not None:
@@ -281,31 +294,15 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
         return tests
 
 @log_and_notify_decorator(expected_return=lambda *args, **kwargs: get_filtered_tests_for_visitor(kwargs['criterion'], kwargs['sorting'], kwargs['category'], kwargs['is_guest']))
-def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None): # add all validators here
+def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None):
     if visitor_uuid is not None and is_guest:
         try:
             visitor_uuid = uuid.UUID(visitor_uuid)
         except ValueError:
-            print('value error') # вызвать кастомную ошибку и в expected_return впихнуть функцию с атрибутами функции без visitor
+            raise CustomException('visitor_uuid is invalid')
     if visitor_uuid is None:
-        print('visitor_uuid is none') # вызвать кастомную ошибку и в expected_return впихнуть функцию с атрибутами функции без visitor
+        raise CustomException('visitor_uuid is none')
 
-    if criterion is not None:
-        criterion = to_int(criterion)
-        criteries = [choice.value for choice in CriterionFilters]
-        if criterion not in criteries:
-            criterion = None
-    if sorting is not None:
-        sorting = to_int(sorting)
-        sortings = [choice.value for choice in SortingFilters]
-        if sorting not in sortings:
-            sorting = None
-    if category is not None:
-        category = to_int(category)
-        categories = [choice.value for choice in TestCategories]
-        if category not in categories:
-            category = None
-    #print(criterion, sorting, category, visitor_uuid, profile_uuid)
     if is_guest:
         return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
                                               is_guest=is_guest, visitor_uuid=visitor_uuid,

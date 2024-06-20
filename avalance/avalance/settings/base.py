@@ -15,7 +15,7 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -25,23 +25,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('SECRET_KEY')
 TOKEN = os.getenv('TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DEBUG') == 'True'
 
-SECURE_SSL_REDIRECT = False
-SESSION_COOKIE_SECURE = True
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'roumerchi.com', 'www.roumerchi.com']
 
-CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 31536000
-
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-SECURE_CONTENT_TYPE_NOSNIFF = True
-
-
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '*']
-
-
+IS_IN_PRODUCTION = os.getenv('IS_IN_PRODUCTION') == 'True'
 # Application definition
 AUTH_USER_MODEL = 'tests.CustomUser'
 
@@ -54,7 +41,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sitemaps',
     'tests.apps.TestsConfig',
-    'debug_toolbar',
 ]
 
 MIDDLEWARE = [
@@ -85,6 +71,13 @@ TEMPLATES = [
         },
     },
 ]
+
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.filebased.FileBasedCache',
+        'LOCATION': os.path.join(BASE_DIR, 'roumerchi_cahce'),
+    }
+}
 
 WSGI_APPLICATION = 'avalance.wsgi.application'
 
@@ -130,8 +123,6 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'tests/static')
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-MEDIA_URL = 'media/'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

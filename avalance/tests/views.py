@@ -639,3 +639,8 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
 def logout_user(request):
     logout(request)
     return redirect('tests:search_test')
+
+
+def health_check(request):
+    print('OK')
+    return JsonResponse({'status': 'OK'}, status=200)

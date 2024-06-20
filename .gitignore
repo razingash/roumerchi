@@ -2,3 +2,4 @@
 /.idea/
 /avalance/db.sqlite3
 /avalance/logs.log
+/avalance/roumerchi_cahce/
