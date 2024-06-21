@@ -50,7 +50,7 @@ def get_guest(guest__uuid): # don't check this because it should be possible
 def is_test_ready(test_slug):
     test = Test.objects.filter(preview_slug=test_slug, status=1)
     if test.exists():
-        if test.last().questions_amount > 14:
+        if to_int(test.last().questions_amount) > 14:
             return True
     return False
 
@@ -72,14 +72,26 @@ def get_permission_for_creating_test(user):
 
 def get_permission_for_creating_test_questions(user):
     permission = Test.objects.filter(author=user, status__in=[1, 2])
-    if permission.exists() and permission.last().questions_amount < 150: # redirect to create test questions  page
+    if permission.exists() and to_int(permission.last().questions_amount) < 150: # redirect to create test questions  page
         return True
     return False
 
+def get_permission_for_changing_test_questions(test):
+    permission = TestQuestion.objects.filter(test=test).exists()
+    if permission:
+        return True
+    return False
+
+
 def get_permission_for_test(test):
-    if test.status != 3:
-        return False
-    return True
+    if test.status == 3:
+        return True
+    return False
+
+def get_permission_for_authorship(test, user):
+    if test.author == user and test.status != 5:
+        return True
+    return False
 
 
 def get_test_results(test, user):
@@ -150,7 +162,7 @@ def get_filters_for_test(test_filter, filter_choices):
         return cleaned_filter
     return None
 
-def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None):
+def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None, authorship=None):
     """In case of duplicates that may occur in the future if storing incomplete attempts to take a test in the
     database, try to use distinct(), or modify is_complete"""
     criterion = get_filters_for_test(test_filter=criterion, filter_choices=CriterionFilters)
@@ -176,7 +188,10 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
     test_visitor_contact = {is_test_completed: visitor_id}
     model_filter = {filter_by_visitor: visitor_id}
     filters = Q()
-    filters &= Q(status=3)
+    if authorship is True and profile_uuid == visitor_uuid:
+        filters &= Q(status__in=[1, 2, 3, 4])
+    else:
+        filters &= Q(status=3)
     is_completed = Max(Case(When(**test_visitor_contact, then=True), default=False))  # annotation to mark completed tests
 
     if visitor_id is None:
@@ -294,23 +309,21 @@ def get_filtered_tests_for_visitor(criterion, sorting, category, is_guest: bool,
         return tests
 
 @log_and_notify_decorator(expected_return=lambda *args, **kwargs: get_filtered_tests_for_visitor(kwargs['criterion'], kwargs['sorting'], kwargs['category'], kwargs['is_guest']))
-def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None):
+def get_filtered_tests(criterion, sorting, category, is_guest: bool, visitor_uuid=None, profile_uuid=None, authorship=None):
     if visitor_uuid is not None and is_guest:
         try:
             visitor_uuid = uuid.UUID(visitor_uuid)
         except ValueError:
-            raise CustomException('visitor_uuid is invalid')
-    if visitor_uuid is None:
-        raise CustomException('visitor_uuid is none')
+            visitor_uuid = None
 
     if is_guest:
         return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
-                                              is_guest=is_guest, visitor_uuid=visitor_uuid,
+                                              is_guest=is_guest, visitor_uuid=visitor_uuid, authorship=authorship,
                                               profile_uuid=profile_uuid).only('id', 'category', 'preview', 'preview_slug')
     else:
         if CustomUser.objects.filter(uuid=visitor_uuid).exists():
             return get_filtered_tests_for_visitor(criterion=criterion, sorting=sorting, category=category,
-                                                  profile_uuid=profile_uuid, visitor_uuid=visitor_uuid,
+                                                  profile_uuid=profile_uuid, visitor_uuid=visitor_uuid, authorship=authorship,
                                                   is_guest=is_guest).only('id', 'category', 'preview', 'preview_slug')
         raise CustomException('something went wrong', error_type=5)
 

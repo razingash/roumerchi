@@ -24,11 +24,11 @@
 }
 
 .test__field__description {
-    font-family: cursive;
+    font-family: sans-serif;
 }
 
 .cover__info {
-    font-family: cursive;
+    font-family: sans-serif;
 }
 
 .cover__contact {
@@ -114,13 +114,6 @@
     background-color: #f2f2f2;
     color: #333;
     cursor: pointer;
-}
-
-@media (max-device-width: 1280px) {
-    .test__field__description,
-    .cover__info {
-        font-family: initial;
-    }
 }
 
 @media (max-width: 500px){

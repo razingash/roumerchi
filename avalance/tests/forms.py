@@ -133,11 +133,11 @@ class TestQuestionAnswersForm(forms.ModelForm):
         }
 
 
-TestQuestionFormSet = forms.inlineformset_factory(Test, TestQuestion, form=TestQuestionForm, extra=0)
-TestQuestionAnswersFormSet = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
+TestQuestionFormSet = forms.inlineformset_factory(Test, TestQuestion, form=TestQuestionForm, extra=0, can_delete=False)
+TestQuestionAnswersFormSet = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0, can_delete=False)
 
 
-TestQuestionAnswersCreateFormSet = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0)
+TestQuestionAnswersCreateFormSet = forms.inlineformset_factory(TestQuestion, QuestionAnswerChoice, form=TestQuestionAnswersForm, extra=0, can_delete=False)
 
 
 class NofiticationForm(forms.ModelForm):

@@ -37,7 +37,7 @@
     justify-content: center;
     margin: 10px 5px;
     overflow-wrap: anywhere;
-    font-family: cursive;
+    font-family: sans-serif;
 }
 
 .test__description {

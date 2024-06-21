@@ -51,7 +51,7 @@
         <div class="test__field" id="test__description">
             <div class="test__questions">
                 <div class="test__questions__amount">
-                    <div class="questions__amount">{{ test.questions_amount }}</div>
+                    <div class="questions__amount">{% if test.questions_amount is null %}0{% else %}{{ test.questions_amount }}{% endif %}</div>
                 </div>
             </div>
             <div class="test__preview">{{ test.preview }}</div>

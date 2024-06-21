@@ -13,12 +13,13 @@ from tests.exceptions import CustomException, log_and_notify_decorator, log_deco
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
     TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm, NofiticationForm, \
-    CustomPasswordResetForm, CustomPasswordResetConfirmForm
+    CustomPasswordResetForm, CustomPasswordResetConfirmForm, TestQuestionAnswersCreateFormSet
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
     get_test_results, get_test_results_for_guest, get_permission_for_creating_test, \
-    get_permission_for_creating_test_questions, is_test_ready, validate_test_created_by_user, get_permission_for_test
+    get_permission_for_creating_test_questions, is_test_ready, validate_test_created_by_user, get_permission_for_test, \
+    get_permission_for_authorship, get_permission_for_changing_test_questions
 from tests.utils import DataMixin
 
 
@@ -225,9 +226,9 @@ class ProfileView(DetailView, DataMixin):
 
         if self.request.user.is_authenticated:
             tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, is_guest=False,
-                                       profile_uuid=profile_uuid, visitor_uuid=self.request.user.uuid)
+                                       profile_uuid=profile_uuid, visitor_uuid=self.request.user.uuid, authorship=True)
         else:
-            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category,
+            tests = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, authorship=True,
                                        profile_uuid=profile_uuid, is_guest=True)
 
         paginator = Paginator(tests, self.paginate_by)
@@ -309,6 +310,18 @@ class TestView(DetailView, DataMixin):
     template_name = 'tests/test.html'
     context_object_name = 'test'
 
+    def dispatch(self, request, *args, **kwargs):
+        self.object = self.get_object()
+        permission = get_permission_for_test(self.object)
+        permission_authorship = get_permission_for_authorship(self.object, self.request.user)
+        if permission_authorship is True:
+            context = self.get_context_data()
+            return self.render_to_response(context)
+        elif permission is False:
+            return redirect('tests:search_test')
+        context = self.get_context_data()
+        return self.render_to_response(context)
+
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
         if self.request.user.is_authenticated:
@@ -324,15 +337,6 @@ class TestView(DetailView, DataMixin):
         test_slug = self.kwargs.get('test_preview')
         queryset = get_test_info_by_slug(test_slug=test_slug)
         return get_object_or_404(queryset)
-
-    def get(self, request, *args, **kwargs):
-        self.object = self.get_object()
-        permission = get_permission_for_test(self.object)
-        if permission is False:
-            return redirect(reverse_lazy('tests:search_test'))
-        else:
-            context = self.get_context_data()
-            return self.render_to_response(context)
 
     def post(self, request, *args, **kwargs):
         request_type = request.POST.get('request_type')
@@ -372,7 +376,7 @@ class CreateTest(LoginRequiredMixin, FormView, DataMixin):
         if self.request.user.is_authenticated:
             permission = get_permission_for_creating_test(self.request.user)
             if permission is False:
-                return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
+                return redirect('tests:create_test_questions')
             else:
                 return super().dispatch(request, *args, **kwargs)
         if self.request.method == 'GET':
@@ -424,7 +428,7 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
                 return redirect('tests:create_test')
             self.answers_formset = get_question_answers_formset(self.request.user.id)
             if self.answers_formset is None:
-                return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
+                return redirect('tests:create_test_questions')
             return super().dispatch(request, *args, **kwargs)
         if self.request.method == 'GET':
             raise CustomException('Green Error: in CreateTestQuestions someone tried to gain access without authorization', error_type=1)
@@ -435,11 +439,11 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         print(f'{self.request.method}: {self.answers_formset}')
         answers_formset = self.answers_formset
         if self.request.method == 'GET':
-            question_formset = TestQuestionFormSet()
-            answer_formset = answers_formset()
+            question_formset = TestQuestionFormSet(prefix='testquestion_set')
+            answer_formset = TestQuestionAnswersCreateFormSet(prefix='questionanswerchoice_set')
         else:
-            question_formset = TestQuestionFormSet(self.request.POST)
-            answer_formset = answers_formset(self.request.POST)
+            question_formset = TestQuestionFormSet(self.request.POST, prefix='testquestion_set')
+            answer_formset = TestQuestionAnswersCreateFormSet(self.request.POST, prefix='questionanswerchoice_set')
         mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, formset=question_formset,
                                     formset2=answer_formset)
         return context | mix
@@ -448,7 +452,7 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         context = self.get_context_data()
 
         question_formset = context['formset']
-        answer_formset = context['formset2']
+        answer_formset = context['formset2'] # stuck
         test_instance = Test.objects.get(author_id=self.request.user.id, status=1)
         criterions = TestCriterion.objects.filter(test=test_instance)
         question_formset.instance = test_instance
@@ -550,7 +554,10 @@ class ChangeTestQuestions(LoginRequiredMixin, FormView, DataMixin):
             test_obj = self.get_object()
             if self.request.user == test_obj.author:
                 context = self.get_context_data(test_obj=test_obj)
-                return self.render_to_response(context)
+                permission = get_permission_for_changing_test_questions(test_obj)
+                if permission is True:
+                    return self.render_to_response(context)
+                return redirect('tests:create_test_questions')
             raise CustomException('Green Error: in ChangeTestQuestions someone tried to gain access without authorization', error_type=1)
         raise CustomException('Green Error: in ChangeTestQuestions someone tried to gain access without authorization', error_type=1)
 
