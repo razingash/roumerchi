@@ -436,14 +436,17 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        print(f'{self.request.method}: {self.answers_formset}')
         answers_formset = self.answers_formset
         if self.request.method == 'GET':
-            question_formset = TestQuestionFormSet(prefix='testquestion_set')
-            answer_formset = TestQuestionAnswersCreateFormSet(prefix='questionanswerchoice_set')
+            question_formset = TestQuestionFormSet()
+            answer_formset = answers_formset()
+            print(question_formset.total_form_count())
         else:
-            question_formset = TestQuestionFormSet(self.request.POST, prefix='testquestion_set')
-            answer_formset = TestQuestionAnswersCreateFormSet(self.request.POST, prefix='questionanswerchoice_set')
+            question_formset = TestQuestionFormSet(self.request.POST)
+            answer_formset = [
+                answers_formset(self.request.POST, prefix=f'questionanswerchoice_set-{i}')
+                for i in range(question_formset.total_form_count())
+            ]
         mix = self.get_user_context(title='new test', user_uuid=self.request.user.uuid, formset=question_formset,
                                     formset2=answer_formset)
         return context | mix
@@ -452,25 +455,36 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         context = self.get_context_data()
 
         question_formset = context['formset']
-        answer_formset = context['formset2'] # stuck
+        answer_formsets = context['formset2']
         test_instance = Test.objects.get(author_id=self.request.user.id, status=1)
+        for a in answer_formsets:
+            print(a.prefix)
         criterions = TestCriterion.objects.filter(test=test_instance)
         question_formset.instance = test_instance
-        if question_formset.is_valid() and answer_formset.is_valid():
-            for question_form in question_formset:
-                question = question_form.save(commit=False)
+        if question_formset.is_valid() and all(answer_formset.is_valid() for answer_formset in answer_formsets):
+            questions = question_formset.save(commit=False)
+
+            for i, question in enumerate(questions):
+                question.test = test_instance
                 question.save()
-                for i, answer_form in enumerate(answer_formset):
+
+                answer_formset = answer_formsets[i]
+                answer_formset.instance = question
+
+                for j, answer_form in enumerate(answer_formset):
                     if answer_form.has_changed():
                         answer = answer_form.save(commit=False)
                         answer.question = question
-                        answer.criterion = criterions[i]
+                        answer.criterion = criterions[j]
                         answer.save()
+                        print(answer.__dict__)
+                answer_formset.save()
+
             return redirect(self.get_success_url())
         else:
             print(question_formset.errors)
-            print(answer_formset.errors)
-        return self.render_to_response(self.get_context_data(form=question_formset, formset2=answer_formset))
+            print(answer_formsets.errors)
+        return self.render_to_response(self.get_context_data(form=question_formset, formset2=answer_formsets))
 
     def get_success_url(self):
         user_uuid = self.request.user.uuid

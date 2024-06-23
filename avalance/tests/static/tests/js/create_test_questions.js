@@ -1,6 +1,8 @@
 $(document).ready(function() {
     let answers_counter = 0;
+    let question_counter = 0
     const answers_forms_amount = parseInt($('#id_questionanswerchoice_set-TOTAL_FORMS').val());
+
     $('#add_question_button').click(function() {
         const totalForms = parseInt($('#id_testquestion_set-TOTAL_FORMS').val());
         if (!isNaN(totalForms)) {
@@ -17,18 +19,25 @@ $(document).ready(function() {
                 $(this).attr('name', new_name);
                 $(this).val('');
             });
+            new_form.find('input[id^="id_questionanswerchoice_set-"]').each(function(){
+                const new_id = $(this).attr('id').replace('__prefix__', form_idx).replace('questionanswerchoice_set-', 'questionanswerchoice_set-' + question_counter + '-');
+                $(this).attr('id', new_id);
+                const new_name = $(this).attr('name').replace('__prefix__', form_idx).replace('questionanswerchoice_set-', 'questionanswerchoice_set-' + question_counter + '-');
+                $(this).attr('name', new_name);
+            });
+
             new_form.appendTo('#questions_formset').show();
             for (let i = 0; i < answers_forms_amount; i++) {
                 const new_form_2 = $('#empty_form_2').clone().removeAttr('id').removeClass('empty-form');
 
                 new_form_2.find('[for^="id_questionanswerchoice_set-"]').each(function(){
-                    const new_for = $(this).attr('for').replace('__prefix__', answers_counter);
+                    const new_for = $(this).attr('for').replace('__prefix__', `${question_counter}-${answers_counter}`);
                     $(this).attr('for', new_for);
                 });
                 new_form_2.find('[id^="id_questionanswerchoice_set-"]').each(function(){
-                    const new_id = $(this).attr('id').replace('__prefix__', answers_counter);
+                    const new_id = $(this).attr('id').replace('__prefix__', `${question_counter}-${answers_counter}`);
                     $(this).attr('id', new_id);
-                    const new_name = $(this).attr('name').replace('__prefix__', answers_counter);
+                    const new_name = $(this).attr('name').replace('__prefix__', `${question_counter}-${answers_counter}`);
                     $(this).val('');
                     $(this).attr('name', new_name);
                 });
@@ -37,7 +46,9 @@ $(document).ready(function() {
                 answers_counter++;
             }
             $('#id_testquestion_set-TOTAL_FORMS').val(totalForms + 1);
+            answers_counter = 0;
         }
+        question_counter++;
     });
     $('#delete_question_button').click(function() {
         const totalForms = parseInt($('#id_testquestion_set-TOTAL_FORMS').val());
@@ -48,9 +59,11 @@ $(document).ready(function() {
                 $('#questions_formset').children('.form__row').last().find('[name$="-DELETE"]').prop('checked', true);
             }
             answers_counter -= answers_forms_amount;
+            question_counter--;
         } else {
             $('#id_testquestion_set-TOTAL_FORMS').val(0);
             answers_counter = 0;
+            question_counter = 0;
         }
     });
 });
