@@ -15,6 +15,7 @@ from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, C
     TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm, NofiticationForm, \
     CustomPasswordResetForm, CustomPasswordResetConfirmForm, TestQuestionAnswersCreateFormSet
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
+from tests.notifications import can_send_email
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
     get_test_results, get_test_results_for_guest, get_permission_for_creating_test, \
@@ -106,6 +107,17 @@ class CustomPasswordResetView(PasswordResetView):
         if self.request.user.is_authenticated:
             return redirect('tests:search_test')
         return super().dispatch(request, *args, **kwargs)
+
+    def form_valid(self, form):
+        email = form.cleaned_data['email']
+        user = CustomUser.objects.filter(email=email)
+
+        if can_send_email(user) is True:
+            response = super().form_valid(form)
+            return response
+        else:
+            form.add_error(None, 'Email sending limit reached or user not found.')
+            return self.form_invalid(form)
 
 
 class CustomPasswordResetDoneView(PasswordResetDoneView):

@@ -201,6 +201,22 @@ class GuestResponse(models.Model):
         db_table = 'guest_response'
 
 
+class EmailCooldownCounter(models.Model):
+    cooldown = models.DateTimeField(auto_now_add=True, blank=False, null=False)
+    counter = models.PositiveSmallIntegerField(default=1, validators=[MinValueValidator(500)], blank=False, null=False)
+
+    class Meta:
+        db_table = 'email_cooldown_counter'
+
+
+class EmailSent(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True, blank=False, null=False) #start_of_counting
+
+    class Meta:
+        db_table = 'email_sent'
+
+
 class BannedIp(models.Model):
     ip_address = models.CharField(max_length=100, unique=True)
     banned_at = models.DateTimeField(auto_now_add=True)

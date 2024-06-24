@@ -7,8 +7,8 @@ services:
     container_name: roumerchi_core_api
     ports:
       - "8001:8001"
-    command: >
-      sh -c "python manage.py runserver 0.0.0.0:8001"
+    command: > #python manage.py runserver 0.0.0.0:8001
+      sh -c "gunicorn --bind=0.0.0.0:8001 avalance.wsgi:application"
     healthcheck:
       test: curl -f http://localhost/roumerchi/api/healthcheck || exit 1
       interval: 10s

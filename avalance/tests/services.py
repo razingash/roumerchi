@@ -4,7 +4,7 @@ from django.db import transaction
 from django import forms
 from django.db.models import Count, Q, When, Case, Max
 
-from notifications import admin_notification
+from tests.notifications import admin_notification
 from tests.exceptions import CustomException, log_and_notify_decorator
 from tests.forms import TestQuestionAnswersForm
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
