@@ -13,14 +13,13 @@ from tests.exceptions import CustomException, log_and_notify_decorator, log_deco
 from tests.forms import LoginCustomUserForm, RegisterCustomUserForm, TestForm, CriterionFormSet, \
     UniqueResultFormSet, TestCriterionFormSet, TestUniqueResultFormSet, TestQuestionFormSet, \
     TestQuestionAnswersFormSet, ChangeCustomUserPasswordForm, ChangeCustomUserForm, NofiticationForm, \
-    CustomPasswordResetForm, CustomPasswordResetConfirmForm, TestQuestionAnswersCreateFormSet
+    CustomPasswordResetForm, CustomPasswordResetConfirmForm
 from tests.models import CustomUser, Test, TestCriterion, SortingFilters, CriterionFilters
-from tests.notifications import can_send_email
 from tests.services import get_profile_info, get_test_info_by_slug, create_new_test_walkthrough, \
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
     get_test_results, get_test_results_for_guest, get_permission_for_creating_test, \
     get_permission_for_creating_test_questions, is_test_ready, validate_test_created_by_user, get_permission_for_test, \
-    get_permission_for_authorship, get_permission_for_changing_test_questions
+    get_permission_for_authorship, get_permission_for_changing_test_questions, get_permission_for_sending_email
 from tests.utils import DataMixin
 
 
@@ -112,7 +111,7 @@ class CustomPasswordResetView(PasswordResetView):
         email = form.cleaned_data['email']
         user = CustomUser.objects.filter(email=email)
 
-        if can_send_email(user) is True:
+        if get_permission_for_sending_email(user) is True:
             response = super().form_valid(form)
             return response
         else:
@@ -298,8 +297,6 @@ class SearchTestsView(ListView, DataMixin):
         criterion = self.request.GET.get('criterion_type')
         sorting = self.request.GET.get('sorting_type')
         category = self.request.GET.get('category_type')
-        #underway_tests = self.request.POST.getlist('underway_tests[]')
-        #print(criterion, sorting, category)
         if self.request.user.is_authenticated:
             user_uuid = self.request.user.uuid
             queryset = get_filtered_tests(criterion=criterion, sorting=sorting, category=category, is_guest=False,
@@ -327,15 +324,14 @@ class TestView(DetailView, DataMixin):
         permission = get_permission_for_test(self.object)
         permission_authorship = get_permission_for_authorship(self.object, self.request.user)
         if permission_authorship is True:
-            context = self.get_context_data()
-            return self.render_to_response(context)
+            return super().dispatch(request, *args, **kwargs)
         elif permission is False:
             return redirect('tests:search_test')
-        context = self.get_context_data()
-        return self.render_to_response(context)
+        return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, *, object_list=None, **kwargs):
         context = super().get_context_data(**kwargs)
+
         if self.request.user.is_authenticated:
             test_results = get_test_results(test=self.object, user=self.request.user)
             mix = self.get_user_context(title='Profile', user_uuid=self.request.user.uuid, test_results=test_results)
@@ -346,9 +342,11 @@ class TestView(DetailView, DataMixin):
         return context | mix
 
     def get_object(self, queryset=None):
-        test_slug = self.kwargs.get('test_preview')
-        queryset = get_test_info_by_slug(test_slug=test_slug)
-        return get_object_or_404(queryset)
+        if not hasattr(self, '_cached_object'):
+            test_slug = self.kwargs.get('test_preview')
+            queryset = get_test_info_by_slug(test_slug=test_slug)
+            self._cached_object = get_object_or_404(queryset)
+        return self._cached_object
 
     def post(self, request, *args, **kwargs):
         request_type = request.POST.get('request_type')

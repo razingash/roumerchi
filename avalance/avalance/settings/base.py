@@ -27,8 +27,6 @@ TOKEN = os.getenv('TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'roumerchi.com', 'www.roumerchi.com']
-
-IS_IN_PRODUCTION = os.getenv('IS_IN_PRODUCTION') == 'True'
 # Application definition
 AUTH_USER_MODEL = 'tests.CustomUser'
 
@@ -51,7 +49,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'debug_toolbar.middleware.DebugToolbarMiddleware',
 ]
 
 ROOT_URLCONF = 'avalance.urls'
@@ -137,7 +134,7 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "email@gmail.com"
-EMAIL_HOST_PASSWORD = "password"
-DEFAULT_FROM_EMAIL = "email@gmail.com"
+EMAIL_HOST_USER = "roumerchi@gmail.com"
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_CODE')
+DEFAULT_FROM_EMAIL = "roumerchi@gmail.com"
 PASSWORD_RESET_TIMEOUT = 60 * 60

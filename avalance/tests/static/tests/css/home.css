@@ -14,7 +14,6 @@
     display: flex;
     margin: 5px 0 15px 0;
     justify-content: space-between;
-    float: right;
 }
 
 .test__field__header {
@@ -115,7 +114,11 @@
     color: #333;
     cursor: pointer;
 }
-
+@media (max-width: 800px) {
+    .bug__report__cover {
+        float: right;
+    }
+}
 @media (max-width: 500px){
     .svg__roflan{
         margin-left: -6px;

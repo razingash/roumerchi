@@ -211,7 +211,7 @@ class EmailCooldownCounter(models.Model):
 
 class EmailSent(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True, blank=False, null=False) #start_of_counting
+    start_of_counting = models.DateTimeField(auto_now_add=True, blank=False, null=False)
 
     class Meta:
         db_table = 'email_sent'

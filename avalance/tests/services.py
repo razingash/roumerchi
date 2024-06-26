@@ -1,16 +1,17 @@
 import uuid
+from datetime import timedelta
 
 from django.db import transaction
 from django import forms
 from django.db.models import Count, Q, When, Case, Max
+from django.utils import timezone
 
-from tests.notifications import admin_notification
+from tests.notifications import admin_notification, notification_email_overflow
 from tests.exceptions import CustomException, log_and_notify_decorator
 from tests.forms import TestQuestionAnswersForm
 from tests.models import CustomUser, Test, Respondent, Response, RespondentResult, TestUniqueResult, TestQuestion, \
     TestCriterion, QuestionAnswerChoice, TestCategories, CriterionFilters, SortingFilters, Guest, GuestRespondent, \
-    GuestResponse, GuestRespondentResult
-
+    GuestResponse, GuestRespondentResult, EmailSent, EmailCooldownCounter
 
 
 @log_and_notify_decorator(expected_return=0)
@@ -92,6 +93,32 @@ def get_permission_for_authorship(test, user):
     if test.author == user and test.status != 5:
         return True
     return False
+
+def get_permission_for_sending_email(user):
+    if user.exists() is False:
+        return False
+
+    user = user.first()
+    now = timezone.now()
+    start_of_day = now.replace(hour=0, minute=0, second=0, microsecond=0)
+
+    user_email_received = EmailSent.objects.filter(user=user, start_of_counting__gte=start_of_day).count()
+    if user_email_received >= 3:
+        return False
+
+    last_counter = EmailCooldownCounter.objects.last()
+    if (last_counter.cooldown - now) >= timedelta(hours=25):
+        EmailSent.objects.create(user=user)
+        EmailCooldownCounter.objects.create()
+    elif 0 < to_int(last_counter.counter) <= 490:
+        EmailSent.objects.create(user=user)
+        last_counter.counter += 1
+        last_counter.save()
+        return True
+    else:
+        notification_email_overflow(now=now)
+        return False
+
 
 
 def get_test_results(test, user):

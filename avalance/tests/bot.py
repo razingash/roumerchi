@@ -16,6 +16,5 @@ bot = telebot.TeleBot(TOKEN)
 chat_id = CHAT_ID
 
 @log_errors
-def send_message(error_message):
-    bot.send_message(chat_id, error_message)
-
+def send_message(message):
+    bot.send_message(chat_id, message)

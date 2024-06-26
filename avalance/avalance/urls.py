@@ -14,11 +14,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+import os
+
 from django.contrib import admin
 from django.urls import path, include, re_path
 from avalance.settings import base
 from tests.views import page_forbidden_error
-
+from avalance import settings
 handler403 = page_forbidden_error
 
 urlpatterns = [
@@ -26,7 +28,7 @@ urlpatterns = [
     path('roumerchi/', include('tests.urls', namespace='tests'))
 ]
 
-if base.IS_IN_PRODUCTION:
+if settings.DEBUG is True:
     import debug_toolbar
     urlpatterns = [
         path('__debug__/', include(debug_toolbar.urls))] + urlpatterns
