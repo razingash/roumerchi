@@ -7,7 +7,7 @@ services:
     container_name: roumerchi_core_api
     ports:
       - "8001:8001"
-    command: > #python manage.py runserver 0.0.0.0:8001 | gunicorn --bind=0.0.0.0:8001 avalance.wsgi:application
+    command: > #python manage.py runserver 0.0.0.0:8001 | gunicorn --bind=0.0.0.0:8000 --log-level=debug avalance.wsgi:application
       sh -c "python manage.py runserver 0.0.0.0:8001 "
     healthcheck:
       test: curl -f http://localhost/roumerchi/api/healthcheck || exit 1
@@ -37,6 +37,7 @@ services:
       - ./../nginx_static/css:/primal_static/errors/css
       - ./../nginx_static/icons:/primal_static/icons
       - ./robots.txt:/primal_static/robots.txt
+      - ./browserconfig.xml:/primal_static/browserconfig.xml
       - ./manifest.json:/primal_static/manifest.json
     command: >
       /bin/sh -c "

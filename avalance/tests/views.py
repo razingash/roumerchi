@@ -473,7 +473,6 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
         question_formset.instance = test_instance
         if question_formset.is_valid() and all(answer_formset.is_valid() for answer_formset in answer_formsets):
             questions = question_formset.save(commit=False)
-
             for i, question in enumerate(questions):
                 question.test = test_instance
                 question.save()
@@ -489,7 +488,7 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
                         answer.save()
                         print(answer.__dict__)
                 answer_formset.save()
-
+            test_instance.questions_amount += questions.count()
             return redirect(self.get_success_url())
         else:
             print(question_formset.errors)
