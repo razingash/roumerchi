@@ -26,8 +26,8 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 TOKEN = os.getenv('TOKEN')
 CHAT_ID = os.getenv('CHAT_ID')
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
-CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost', 'http://0.0.0.0']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0', 'roumerchi.com', 'www.roumerchi.com']
+CSRF_TRUSTED_ORIGINS = ['http://127.0.0.1', 'http://localhost', 'http://0.0.0.0', 'http://roumerchi.com', 'http://www.roumerchi.com']
 
 # Application definition
 AUTH_USER_MODEL = 'tests.CustomUser'

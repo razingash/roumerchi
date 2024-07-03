@@ -68,16 +68,25 @@ def get_test_info_by_slug(test_slug):
 def get_permission_for_creating_test(user):
     permission = Test.objects.filter(author=user, status__in=[1, 2])
     if permission.exists(): # redirect to changing test page
-        return False
+        return permission.last()
     return True
 
 def get_permission_for_creating_test_questions(user):
     permission = Test.objects.filter(author=user, status__in=[1, 2])
-    if permission.exists() and to_int(permission.last().questions_amount) < 150: # redirect to create test questions  page
-        return True
+    if permission.exists():
+        if to_int(permission.last().questions_amount) < 150:
+            return True
+        return permission.last()
     return False
 
+def get_permission_for_changing_test(author):
+    if Test.objects.filter(author=author, status=2).exists():
+        return False
+    return True
+
 def get_permission_for_changing_test_questions(test):
+    if get_permission_for_changing_test(test.author) is False:
+        return False
     permission = TestQuestion.objects.filter(test=test).exists()
     if permission:
         return True
@@ -118,7 +127,6 @@ def get_permission_for_sending_email(user):
     else:
         notification_email_overflow(now=now)
         return False
-
 
 
 def get_test_results(test, user):
@@ -520,7 +528,7 @@ def validate_test_created_by_user(test_id, author):
     test = Test.objects.prefetch_related('testuniqueresult_set', 'testcriterion_set').filter(id=test_id, author=author,
                                                                                              status=1)
     if not test.exists():
-        raise CustomException(f"Yellow Error: test with id {test_id} and author_id {author.id} wasn't found")
+        raise CustomException(f"Yellow Error: test with id {test_id} and author_id {author.id} with status 1 wasn't found")
     test = test.last()
     #answers points validation
     unique_results = test.testuniqueresult_set.all()

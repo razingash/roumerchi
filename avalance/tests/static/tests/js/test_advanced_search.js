@@ -95,6 +95,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 },
                 url: currentUrl,
                 data: {
+                    'csrfmiddlewaretoken': csrfToken,
                     'request_type': 'advanced_search',
                     'criterion_type': criterion_type,
                     'sorting_type': sorting_type,

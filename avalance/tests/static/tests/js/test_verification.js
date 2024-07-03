@@ -11,12 +11,14 @@ document.addEventListener('DOMContentLoaded', function () {
             },
             url: url,
             data: {
+                'csrfmiddlewaretoken': csrfToken,
                 'request_type': 'test_validation',
                 'test_id': testId,
                 'sender_uuid': userUuidTag,
             },
             success: function (response) {
                 console.log('success');
+                window.location.href = 'http://127.0.0.1:8000/roumerchi/';
             },
             error: function (xhr, status, error) {
                 console.error('Error during sending POST request:', error);

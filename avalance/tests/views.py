@@ -19,7 +19,8 @@ from tests.services import get_profile_info, get_test_info_by_slug, create_new_t
     validate_paginator_get_attribute, get_question_answers_formset, get_test_categories, get_filtered_tests, \
     get_test_results, get_test_results_for_guest, get_permission_for_creating_test, \
     get_permission_for_creating_test_questions, is_test_ready, validate_test_created_by_user, get_permission_for_test, \
-    get_permission_for_authorship, get_permission_for_changing_test_questions, get_permission_for_sending_email
+    get_permission_for_authorship, get_permission_for_changing_test_questions, get_permission_for_sending_email, \
+    get_permission_for_changing_test
 from tests.utils import DataMixin
 
 
@@ -372,7 +373,7 @@ class TestView(DetailView, DataMixin):
                 if self.request.user.is_authenticated:
                     validated_test = validate_test_created_by_user(test_id=test_id, author=self.request.user)
                     if isinstance(validated_test, Test):
-                        return redirect(reverse_lazy('tests:test', kwargs={'test_preview': validated_test.preview}))
+                        return redirect(reverse_lazy('tests:test', kwargs={'test_preview': validated_test.preview_slug}))
                     return JsonResponse({'status': 400, 'message': 'failed'})
         return JsonResponse({'message': 'something get wrong'})
 
@@ -385,10 +386,10 @@ class CreateTest(LoginRequiredMixin, FormView, DataMixin):
     def dispatch(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             permission = get_permission_for_creating_test(self.request.user)
-            if permission is False:
-                return redirect('tests:create_test_questions')
-            else:
+            if permission is True:
                 return super().dispatch(request, *args, **kwargs)
+            else:
+                return redirect(reverse_lazy('tests:test', kwargs={'test_preview': permission.preview_slug}))
         if self.request.method == 'GET':
             raise CustomException('Green Error: in CreateTest someone tried to gain access without authorization', error_type=1)
         raise CustomException('Black Error: in CreateTest someone tried POST request without authorization', error_type=4)
@@ -434,12 +435,15 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
     def dispatch(self, request, *args, **kwargs):
         if self.request.user.is_authenticated:
             permission = get_permission_for_creating_test_questions(self.request.user)
-            if permission is False:
-                return redirect('tests:create_test')
-            self.answers_formset = get_question_answers_formset(self.request.user.id)
-            if self.answers_formset is None:
-                return redirect('tests:create_test_questions')
-            return super().dispatch(request, *args, **kwargs)
+            if permission is True:
+                self.answers_formset = get_question_answers_formset(self.request.user.id)
+                if self.answers_formset is None:
+                    return redirect('tests:create_test')
+                return super().dispatch(request, *args, **kwargs)
+            elif permission is False:
+                return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
+            else:
+                return redirect(reverse_lazy('tests:test', kwargs={'test_preview': permission.preview_slug}))
         if self.request.method == 'GET':
             raise CustomException('Green Error: in CreateTestQuestions someone tried to gain access without authorization', error_type=1)
         raise CustomException('Black Error: in CreateTestQuestions someone tried POST request without authorization', error_type=4)
@@ -488,7 +492,8 @@ class CreateTestQuestions(LoginRequiredMixin, FormView, DataMixin):
                         answer.save()
                         print(answer.__dict__)
                 answer_formset.save()
-            test_instance.questions_amount += questions.count()
+            test_instance.questions_amount += len(questions)
+            test_instance.save()
             return redirect(self.get_success_url())
         else:
             print(question_formset.errors)
@@ -510,6 +515,9 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
             test_obj = self.get_object()
             if self.request.user == test_obj.author:
                 context = self.get_context_data(test_obj=test_obj)
+                permission = get_permission_for_changing_test(self.request.user)
+                if permission is False:
+                    return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
                 return self.render_to_response(context)
             raise CustomException('Green Error: in ChangeTestInfo someone tried to gain access without authorization', error_type=1)
         raise CustomException('Green Error: in ChangeTestInfo someone tried to gain access without authorization', error_type=1)
@@ -519,6 +527,9 @@ class ChangeTestInfo(LoginRequiredMixin, FormView, DataMixin):
         if self.request.user.is_authenticated:
             test_obj = self.get_object()
             if self.request.user == test_obj.author:
+                permission = get_permission_for_changing_test(self.request.user)
+                if permission is False:
+                    return redirect(reverse_lazy('tests:profile', kwargs={'profile_uuid': self.request.user.uuid}))
                 return super().post(request, *args, **kwargs)
             raise CustomException(f'Dark Error: in ChangeTestInfo user: {self.request.user.uuid} tried POST without being the author',  error_type=4)
         raise CustomException('Black Error: in ChangeTestInfo someone tried POST request without authorization', error_type=4)

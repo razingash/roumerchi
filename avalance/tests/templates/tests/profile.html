@@ -18,7 +18,7 @@
                 <div class="profile__intro">
                     <div class="field__description">
                         <div class="username">{{ user.username }}</div>
-                        <div class="description">{% if user.description is not none %}{{ user.description }}{% else %}Here I am hiding{% endif %}</div>
+                        <div class="description">{% if user.description is not None %}{{ user.description }}{% else %}Here I am hiding{% endif %}</div>
                     </div>
                 </div>
                 {% if request.user.is_authenticated and user.uuid == user_uuid %}
@@ -110,25 +110,25 @@
                         </div>
                     {% endif %}
                 </div>
-                {% if tests.has_other_pages %}
+                {% if ptests.has_other_pages %}
                 <div class="partition">
                     <div class="partition__big partition__wide"></div>
                 </div>
                 <div class="pagination">
-                    {% if tests.has_previous %}
-                        <a href="?{{ modified_get.urlencode }}&page={{ tests.previous_page_number }}" class="pagination__clickable"><</a>
+                    {% if ptests.has_previous %}
+                        <a href="?{{ modified_get.urlencode }}&page={{ ptests.previous_page_number }}" class="pagination__clickable"><</a>
                     {% else %}
                         <a class="pagination__unclickable"><</a>
                     {% endif %}
-                    {% for p in tests.paginator.page_range %}
-                        {% if tests.number == p %}
+                    {% for p in ptests.paginator.page_range %}
+                        {% if ptests.number == p %}
                             <a class="pagination__current">{{ p }}</a>
-                        {% elif p >= tests.number|add:-4 and p <= tests.number|add:4 %}
+                        {% elif p >= ptests.number|add:-4 and p <= ptests.number|add:4 %}
                             <a href="?{{ modified_get.urlencode }}&page={{ p }}" class="pagination__clickable">{{ p }}</a>
                         {% endif %}
                     {% endfor %}
-                    {% if tests.has_next %}
-                        <a href="?{{ modified_get.urlencode }}&page={{ tests.next_page_number }}" class="pagination__clickable">></a>
+                    {% if ptests.has_next %}
+                        <a href="?{{ modified_get.urlencode }}&page={{ ptests.next_page_number }}" class="pagination__clickable">></a>
                     {% else %}
                         <a class="pagination__unclickable">></a>
                     {% endif %}

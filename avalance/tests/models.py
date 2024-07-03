@@ -85,6 +85,9 @@ class Test(models.Model):
     publication_date = models.DateTimeField(auto_now=True, blank=False, null=False)
     change_date = models.DateTimeField(auto_now_add=True, blank=False, null=False)
 
+    def __str__(self):
+        return self.preview
+
     def clean(self):
         if self._state.adding:
             self.preview_slug = slugify(unidecode(str(self.preview)))

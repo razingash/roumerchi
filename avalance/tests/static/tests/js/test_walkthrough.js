@@ -123,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 'X-CSRFToken': csrfToken
             },
             data: {
+                'csrfmiddlewaretoken': csrfToken,
                 'request_type': 'new_walkthrough',
                 'test_id': testId,
                 'sender_uuid': userUuid,
