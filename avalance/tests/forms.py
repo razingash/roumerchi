@@ -78,9 +78,10 @@ class ChangeCustomUserPasswordForm(SetPasswordForm):
 class TestForm(forms.ModelForm):
     class Meta:
         model = Test
-        fields = ['category', 'preview', 'description']
+        fields = ['category', 'show_criterions_description', 'preview', 'description']
         widgets = {
             'preview': forms.TextInput(attrs={'class': 'form__input', 'placeholder': 'at least 10 symbols'}),
+            'show_criterions_description': forms.CheckboxInput(attrs={'class': 'form__input', 'placeholder': 'at least 10 symbols'}),
             'description': forms.Textarea(attrs={'cols': 60, 'rows': 10, 'class': 'form__textarea',
                                                  'placeholder': 'at least 500 symbols'})
         }

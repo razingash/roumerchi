@@ -75,11 +75,12 @@ class Test(models.Model):
     category = models.PositiveSmallIntegerField(choices=TestCategories.choices, blank=False, null=False)
     status = models.PositiveSmallIntegerField(choices=TestStatuses.choices, blank=False, null=False,
                                               default=TestStatuses.UNDERWAY)
+    show_criterions_description = models.BooleanField(default=True, blank=False)
     preview = models.CharField(max_length=220, validators=[MinLengthValidator(10)], blank=False, null=False)
     preview_slug = models.SlugField(blank=False, null=True, unique=True)
     description = models.TextField(max_length=2500, blank=False, null=False, validators=[MinLengthValidator(10)])#[100, 2500]
-    questions_amount = models.PositiveSmallIntegerField(blank=True, null=True, validators=[MinValueValidator(2),
-                                                                                           MaxValueValidator(150)]) # improve this#[15, 150]
+    questions_amount = models.PositiveSmallIntegerField(blank=True, null=False, default=0, validators=[MinValueValidator(2),
+                                                                                                      MaxValueValidator(150)]) # improve this#[15, 150]
     grade = models.SmallIntegerField(default=0, blank=False, null=False)
     reputation = models.SmallIntegerField(default=50, blank=False, null=False)
     publication_date = models.DateTimeField(auto_now=True, blank=False, null=False)

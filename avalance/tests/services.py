@@ -61,7 +61,7 @@ def get_profile_info(profile_uuid):
 
 def get_test_info_by_slug(test_slug):
     queryset = Test.objects.prefetch_related('testcriterion_set', 'testquestion_set', 'testquestion_set__questionanswerchoice_set')
-    queryset = queryset.only('id', 'preview', 'description', 'status', 'questions_amount', 'grade', 'reputation')
+    queryset = queryset.only('id', 'preview', 'show_criterions_description', 'description', 'status', 'questions_amount', 'grade', 'reputation')
     queryset = queryset.filter(preview_slug=test_slug)
     return queryset
 
