@@ -25,9 +25,9 @@ handler.setFormatter(formatter)
 custom_logger.addHandler(handler)
 
 
-def log_and_notify_decorator(expected_return=None, *return_args, **return_kwargs): # overwhelming | 2, 3, 5, 1
+def log_and_notify_decorator(*return_args, expected_return=None, **return_kwargs): # overwhelming | 2, 3, 5, 1
     def decorator(func: callable):
-        def wrapper(*args, **kwargs):
+        def validator(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except CustomException as e:
@@ -46,12 +46,12 @@ def log_and_notify_decorator(expected_return=None, *return_args, **return_kwargs
                 if return_args or return_kwargs:
                     return return_args, return_kwargs
                 return expected_return
-        return wrapper
+        return validator
     return decorator
 
 def log_decorator(expected_return=None, *return_args, **return_kwargs): # 4, 1
     def decorator(func: callable):
-        def wrapper(*args, **kwargs):
+        def validator(*args, **kwargs):
             try:
                 return func(*args, **kwargs)
             except CustomException as e:
@@ -63,7 +63,7 @@ def log_decorator(expected_return=None, *return_args, **return_kwargs): # 4, 1
                 if return_args or return_kwargs:
                     return return_args, return_kwargs
                 return expected_return
-        return wrapper
+        return validator
     return decorator
 
 def get_guest_ip(request):

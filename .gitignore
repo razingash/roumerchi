@@ -3,3 +3,6 @@
 /avalance/db.sqlite3
 /avalance/logs.log
 /avalance/roumerchi_cahce/
+/avalance/tests/migrations
+!avalance/tests/migrations/__init__.py
+/avalance/tests/static

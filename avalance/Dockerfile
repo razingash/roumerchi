@@ -9,5 +9,4 @@ COPY . /avalance/
 RUN pip install -r requirements/dev.txt
 
 RUN python manage.py collectstatic --noinput
-RUN python manage.py makemigrations --noinput
-# RUN python manage.py migrate --noinput #
+RUN python manage.py initialization
